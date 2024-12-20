@@ -22,11 +22,6 @@ export class createUser1631039612322 implements MigrationInterface {
             type: 'varchar',
           },
           {
-            name: 'softspacer',
-            type: 'uuid',
-            isNullable: true,
-          },
-          {
             name: 'hasResetPass',
             type: 'boolean',
             isNullable: true
@@ -71,14 +66,6 @@ export class createUser1631039612322 implements MigrationInterface {
             isNullable: true,
           },
         ],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'users',
-      new TableForeignKey({
-        columnNames: ['softspacer'],
-        referencedTableName: 'softspacers',
-        referencedColumnNames: ['id'],
       })
     );
   }

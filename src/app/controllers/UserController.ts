@@ -5,7 +5,6 @@ import queryBuilder from '@utils/queryBuilder';
 import emailValidator from '@utils/emailValidator';
 import generatePassword from '@utils/generatePassword';
 import transport from '@src/modules/mailer';
-import { firstName } from '@utils/format';
 import sendMail from '@src/services/sendEmail';
 import crypto from 'crypto';
 import Workspace from '@entities/Workspace';
@@ -199,7 +198,7 @@ class UserController {
 
       const password = generatePassword();
 
-      const userName = firstName(name);
+      const userName = (name);
 
       const client = process.env.CLIENT_CONNECTION;
 
@@ -250,7 +249,7 @@ class UserController {
 
       const password = generatePassword();
 
-      const userName = firstName(name);
+      const userName = (name);
 
       const client = process.env.CLIENT_CONNECTION;
 

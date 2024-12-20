@@ -2,10 +2,9 @@ import axios from 'axios';
 import { Request, Response } from 'express';
 import { type } from 'os';
 import Workspace from '@entities/Workspace';
-import { sendMessage, generateToken, startSession, getConnectionClient } from '@utils/whatsapp/whatsapp';
 import { io } from '@src/socket';
 import Thread from '@entities/Thread';
-import { encrypt } from '@utils/encrypt';
+import { encrypt } from '@utils/encrypt/encrypt';
 import OpenAI from 'openai';
 
 class WorkspaceController {
@@ -16,36 +15,6 @@ class WorkspaceController {
       return res.status(200).json(workspaces);
     } catch (error) {
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });
-    }
-  }
-  // public async CheckConectionWhatsApp(req: Request, res: Response): Promise<any> {
-  //   try {
-  //     const id = req.params.id;
-
-  //     const workspace = await Workspace.findOne(id);
-
-  //     if (!workspace) return res.status(404).json({ error: 'Cannot find workspace failed, try again' });
-
-  //     const connection = await getConnectionClient(workspace?.wppToken, workspace.id);
-
-  //     return res.status(200).json({ statusConnection: connection });
-  //   } catch (error) {
-  //     console.error(error);
-  //     return res.status(404).json({ error: 'Conection failed, try again' });
-  //   }
-  // }
-  public async conectionWhatsApp(req: Request, res: Response): Promise<any> {
-    try {
-      const id = req.params.id;
-
-      const token = await generateToken(id);
-
-      const code = await startSession(token, id);
-
-      return res.status(200).json({ qrCode: code });
-    } catch (error) {
-      console.error(error);
-      return res.status(404).json({ error: 'Conection failed, try again' });
     }
   }
   public async updateWorkspace(req: Request, res: Response): Promise<any> {

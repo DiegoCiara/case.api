@@ -7,8 +7,6 @@ export default async function compareApiKey(apiKey: string) {
 
     const parseKey = JSON.parse(decryptKey);
 
-
-
     const workspace = await Workspace.findOne(parseKey.workspaceId);
 
     if (!workspace) return false;

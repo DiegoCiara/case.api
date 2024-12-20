@@ -5,30 +5,22 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
-  OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import Pipeline from './Pipeline';
-import Contact from './Contact';
-import Thread from './Thread';
 import Workspace from './Workspace';
 import User from './User';
-import Product from './Product';
-import Deal from './Deal';
 
 @Entity({ name: 'tasks' })
 class Task extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => Deal, (token) => token.tasks, { nullable: true })
-  @JoinColumn([{ name: 'contact', referencedColumnName: 'id' }])
-  deal!: Deal;
+  @ManyToOne(() => Pipeline, (token) => token.tasks, { nullable: true })
+  @JoinColumn([{ name: 'pipeline', referencedColumnName: 'id' }])
+  pipeline!: Pipeline;
 
   @ManyToOne(() => Workspace, (token) => token.tasks)
   @JoinColumn([{ name: 'workspace', referencedColumnName: 'id' }])

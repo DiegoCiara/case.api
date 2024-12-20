@@ -15,7 +15,7 @@ export class createCreditCard1631039612326 implements MigrationInterface {
             generationStrategy: 'uuid',
           },
           {
-            name: 'softspacer',
+            name: 'workspace',
             type: 'uuid',
           },
           {
@@ -51,8 +51,8 @@ export class createCreditCard1631039612326 implements MigrationInterface {
     await queryRunner.createForeignKey(
       'creditCards',
       new TableForeignKey({
-        columnNames: ['softspacer'],
-        referencedTableName: 'softspacers',
+        columnNames: ['workspace'],
+        referencedTableName: 'workspaces',
         referencedColumnNames: ['id'],
       })
     );

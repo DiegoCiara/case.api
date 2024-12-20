@@ -14,10 +14,6 @@ export class createWorkspace1631039612323 implements MigrationInterface {
             generationStrategy: 'uuid',
           },
           {
-            name: 'softspacer',
-            type: 'uuid',
-          },
-          {
             name: 'companyType',
             type: 'varchar',
           },
@@ -98,14 +94,6 @@ export class createWorkspace1631039612323 implements MigrationInterface {
             isNullable: true,
           },
         ],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'workspaces',
-      new TableForeignKey({
-        columnNames: ['softspacer'],
-        referencedTableName: 'softspacers',
-        referencedColumnNames: ['id'],
       })
     );
     await queryRunner.createForeignKey(

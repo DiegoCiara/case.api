@@ -13,12 +13,6 @@ import {
 } from 'typeorm';
 import User from './User';
 import Workspace from './Workspace';
-import Pipeline from './Pipeline';
-import Funnel from './Funnel';
-import Commission from './Commission';
-import Goal from './Goal';
-import Playground from './Playground';
-// ,
 // "creditCard": {
 //   "creditCardNumber": "8829",
 //   "creditCardBrand": "MASTERCARD",
@@ -36,15 +30,6 @@ class Access extends BaseEntity {
   @ManyToOne(() => User, (token) => token.accesses)
   @JoinColumn([{ name: 'user', referencedColumnName: 'id' }])
   user!: User;
-
-  @OneToMany(() => Playground, (token) => token.user)
-  playgrounds!: Playground[];
-
-  @ManyToMany(() => Funnel, (deal) => deal.accesses)
-  funnels!: Funnel[];
-
-  @ManyToMany(() => Goal, (deal) => deal.accesses)
-  goals!: Goal[];
 
   @Column({ type: 'enum', enum: ['OWNER','LEADER', 'ADMIN', 'SELLER', 'SUPPORT'], default: 'OWNER' })
   role!: string;

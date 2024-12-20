@@ -15,12 +15,10 @@ import Workspace from './Workspace';
 import CreditCard from './CreditCard';
 import Message from './Message';
 import Access from './Access';
-import Deal from './Deal';
 import Task from './Task';
 import Notification from './Notification';
 import Thread from './Thread';
 import Log from './Log';
-import Softspacer from './Softspacer';
 
 @Entity({ name: 'users' })
 class User extends BaseEntity {
@@ -56,13 +54,6 @@ class User extends BaseEntity {
 
   @OneToMany(() => Notification, (workspace) => workspace.user)
   notifications!: Notification[];
-
-  @OneToMany(() => Deal, (workspace) => workspace.user)
-  deals!: Deal[];
-
-  @ManyToOne(() => Softspacer, (user) => user.owners, { nullable: true })
-  @JoinColumn([{ name: 'softspacer', referencedColumnName: 'id' }])
-  softspacer!: Softspacer;
 
   @OneToMany(() => Log, (workspace) => workspace.user)
   logs!: Log[];

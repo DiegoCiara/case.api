@@ -2,8 +2,6 @@ import Workspace from '@entities/Workspace';
 import Thread from '@entities/Thread';
 import fs from 'fs';
 import AWS from 'aws-sdk';
-import Document from '@entities/Document';
-import sizeOf from 'image-size';
 import axios from 'axios';
 
 const bucketName = process.env.AWS_BUCKET_NAME;
@@ -21,14 +19,6 @@ export async function convertDataAudio(data: any, id: string, workspace: Workspa
     const fileData = await Buffer.from(data, 'base64');
 
     await fs.promises.writeFile(`src/temp/messages/${id}.m4a`, fileData);
-
-    // await fs.writeFile(`src/temp/messages/${id}.m4a`, fileData, (err) => {
-    //   if (err) {
-    //     console.error('Erro ao salvar o arquivo:', err);
-    //   } else {
-    //     console.log('Arquivo salvo com sucesso!');
-    //   }
-    // });
 
     const params = {
       Bucket: bucketName!,

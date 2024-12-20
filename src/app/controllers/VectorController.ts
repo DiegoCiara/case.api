@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import Vector from '@entities/Vector';
 import { log } from '@utils/createLog';
 import AWS from 'aws-sdk';
-import { decrypt } from '@utils/encrypt';
+import { decrypt } from '@utils/encrypt/encrypt';
 import OpenAI from 'openai';
 import fs from 'fs';
 import File from '@entities/File';
@@ -55,10 +55,9 @@ class VectorController {
 
       const group = await Vector.findOne(vectorId, { where: { workspace: workspace }, relations: ['files'] });
 
-      await log('vectors', req, 'findById', 'success', JSON.stringify({ id: id }),id);
+      await log('vectors', req, 'findById', 'success', JSON.stringify({ id: id }), id);
 
       return res.status(200).json(group);
-
     } catch (error) {
       await log('vectors', req, 'findById', 'failed', JSON.stringify(error), null);
       return res.status(404).json({ message: 'Cannot find groups, try again' });
@@ -294,7 +293,7 @@ class VectorController {
       if (!workspaceFind || !vector) {
         return res.status(400).json({ message: 'Workspace ou vetor não encontrado' });
       }
-      console.log('aui')
+      console.log('aui');
 
       const apiKey = await decrypt(workspaceFind!.openaiApiKey);
       const openai = new OpenAI({ apiKey });

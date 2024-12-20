@@ -12,16 +12,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import User from './User';
 import Workspace from './Workspace';
 import Thread from './Thread';
-import Token from './Token';
-import Message from './Message';
-import Customer from './Customer';
-import Bank from './Bank';
-import Partner from './Partner';
-import Product from './Product';
-import Sale from './Sale';
 import Assistant from './Assistant';
 
 @Entity({ name: 'whispers' })

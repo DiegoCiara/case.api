@@ -10,11 +10,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import User from './User';
+import Task from './Task';
 import Workspace from './Workspace';
-import Funnel from './Funnel';
-import Deal from './Deal';
-import LandingPage from './LandingPage';
 // ,
 // "creditCard": {
 //   "creditCardNumber": "8829",
@@ -26,15 +23,12 @@ class Pipeline extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => Funnel, (token) => token.pipelines)
-  @JoinColumn([{ name: 'funnel', referencedColumnName: 'id' }])
-  funnel!: Funnel;
+  @ManyToOne(() => Workspace, (token) => token.pipelines)
+  @JoinColumn([{ name: 'workspace', referencedColumnName: 'id' }])
+  workspace!: Workspace;
 
-  @OneToMany(() => Deal, (token) => token.pipeline)
-  deals!: Deal[];
-
-  @OneToMany(() => LandingPage, (token) => token.pipeline)
-  landingpages!: LandingPage[];
+  @OneToMany(() => Task, (token) => token.pipeline)
+  tasks!: Task[];
 
   @Column()
   name!: string;

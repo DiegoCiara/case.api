@@ -1,1 +1,0 @@
-//  Criar a função de verificação de planos

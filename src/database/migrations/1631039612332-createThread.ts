@@ -27,37 +27,12 @@ export class createThread1631039612332 implements MigrationInterface {
             type: 'uuid',
           },
           {
-            name: 'deal',
-            type: 'uuid',
-            isNullable: true,
-          },
-          {
-            name: 'contact',
-            type: 'uuid',
-            isNullable: true,
-          },
-          {
-            name: 'landingpage',
-            type: 'uuid',
-            isNullable: true,
-          },
-          {
             name: 'user',
             type: 'uuid',
             isNullable: true,
           },
           {
             name: 'name',
-            type: 'varchar',
-          },
-          {
-            name: 'responsible',
-            type: 'enum',
-            enum: ['ASSISTANT', 'USER'],
-            default: `'ASSISTANT'`,
-          },
-          {
-            name: 'usage',
             type: 'varchar',
           },
           {
@@ -101,32 +76,8 @@ export class createThread1631039612332 implements MigrationInterface {
     await queryRunner.createForeignKey(
       'threads',
       new TableForeignKey({
-        columnNames: ['contact'],
-        referencedTableName: 'contacts',
-        referencedColumnNames: ['id'],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'threads',
-      new TableForeignKey({
         columnNames: ['user'],
         referencedTableName: 'users',
-        referencedColumnNames: ['id'],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'threads',
-      new TableForeignKey({
-        columnNames: ['deal'],
-        referencedTableName: 'deals',
-        referencedColumnNames: ['id'],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'threads',
-      new TableForeignKey({
-        columnNames: ['landingpage'],
-        referencedTableName: 'landingpages',
         referencedColumnNames: ['id'],
       })
     );

@@ -18,11 +18,6 @@ export class createTask1631039612340 implements MigrationInterface {
             type: 'uuid',
           },
           {
-            name: 'deal',
-            type: 'uuid',
-            isNullable: true,
-          },
-          {
             name: 'user',
             type: 'uuid',
           },
@@ -68,14 +63,6 @@ export class createTask1631039612340 implements MigrationInterface {
       new TableForeignKey({
         columnNames: ['workspace'],
         referencedTableName: 'workspaces',
-        referencedColumnNames: ['id'],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'tasks',
-      new TableForeignKey({
-        columnNames: ['deal'],
-        referencedTableName: 'deals',
         referencedColumnNames: ['id'],
       })
     );

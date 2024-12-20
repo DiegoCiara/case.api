@@ -15,17 +15,11 @@ import {
 } from 'typeorm';
 import Token from './Token';
 import Thread from './Thread';
-import Action from './Action';
 import Whisper from './Whisper';
 import Vision from './Vision';
 import Workspace from './Workspace';
-import Session from './Session';
 import Message from './Message';
-import File from './File';
 import Vector from './Vector';
-import LandingPage from './LandingPage';
-import Funnel from './Funnel';
-import Playground from './Playground';
 
 @Entity({ name: 'assistants' })
 class Assistant extends BaseEntity {
@@ -40,14 +34,8 @@ class Assistant extends BaseEntity {
   @JoinColumn([{ name: 'vector', referencedColumnName: 'id' }])
   vector!: Vector;
 
-  @OneToOne(() => Session, (session) => session.assistant)
-  session!: Session;
-
   @OneToMany(() => Thread, (token) => token.assistant)
   threads!: Thread[];
-
-  @OneToMany(() => Playground, (token) => token.assistant)
-  playgrounds!: Playground[];
 
   @OneToMany(() => Message, (token) => token.assistant)
   messages!: Message[];
@@ -61,16 +49,6 @@ class Assistant extends BaseEntity {
   @OneToMany(() => Whisper, (token) => token.assistant)
   whispers!: Whisper[];
 
-  @OneToMany(() => Action, (token) => token.assistant)
-  actions!: Action[];
-
-  @OneToMany(() => LandingPage, (token) => token.assistant)
-  landingpages!: LandingPage[];
-
-  @ManyToMany(() => Funnel, (deal) => deal.assistants)
-  @JoinTable()
-  funnels!: Funnel[];
-
   @Column()
   name!: string;
 
@@ -82,12 +60,6 @@ class Assistant extends BaseEntity {
 
   @Column()
   openaiAssistantId!: string;
-
-  @Column({ default: false })
-  wppEnabled!: boolean;
-
-  @Column({ type: 'int', default: 20 }) //30 minutos
-  wppDelayResponse!: number; //Tempo de espera para aassumir o whatsapp
 
   @Column({ default: true })
   active!: boolean;

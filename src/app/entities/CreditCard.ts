@@ -11,7 +11,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import User from './User';
-import Softspacer from './Softspacer';
+import Workspace from './Workspace';
 // ,
   // "creditCard": {
   //   "creditCardNumber": "8829",
@@ -23,9 +23,9 @@ class CreditCard extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => Softspacer, (user) => user.creditCards)
-  @JoinColumn([{ name: 'softspacer', referencedColumnName: 'id' }])
-  softspacer!: Softspacer;
+  @ManyToOne(() => Workspace, (user) => user.creditCards)
+  @JoinColumn([{ name: 'workspace', referencedColumnName: 'id' }])
+  workspace!: Workspace;
 
   @Column()
   creditCardNumber!: string;

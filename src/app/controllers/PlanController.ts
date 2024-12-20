@@ -2,12 +2,6 @@ import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import Plans from '@entities/Plan';
 import queryBuilder from '@utils/queryBuilder';
-import emailValidator from '@utils/emailValidator';
-import generatePassword from '@utils/generatePassword';
-import transport from '@src/modules/mailer';
-import { firstName } from '@utils/format';
-import sendMail from '@src/services/sendEmail';
-import crypto from 'crypto';
 import { log } from '@utils/createLog';
 
 interface PlanInterface {

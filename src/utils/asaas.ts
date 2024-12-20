@@ -1,9 +1,9 @@
 import User from '@entities/User';
 import CreditCard from '@entities/CreditCard';
 import axios from 'axios';
-import Softspacer from '@entities/Softspacer';
 import Plan from '@entities/Plan';
-require('dotenv').config();
+import dotenv from 'dotenv'
+dotenv.config();
 
 const devEnviroment = process.env.ENVIROMENT === 'DEV';
 
@@ -123,7 +123,7 @@ export async function updateAsaasSoftspaceId(id: string, softspacerId: string) {
 
 export async function createAsaasSubscription(asaasCustomerId: string, body: object, workspaceId: string) {
   // https://docs.asaas.com/reference/criar-assinatura-com-cartao-de-credito\
-  const { softspacer, creditCard, billingType, plan }: any = body;
+  const { workspace, email, creditCard, billingType, plan }: any = body;
 
   const { holderName, cpfCnpj, phone, postalCode, addressNumber, address, number, expiryMonth, expiryYear, ccv, ip } = creditCard;
 
@@ -159,7 +159,7 @@ export async function createAsaasSubscription(asaasCustomerId: string, body: obj
           },
           creditCardHolderInfo: {
             name: holderName,
-            email: softspacer.responsibleEmail,
+            email: email,
             cpfCnpj: cpfCnpj,
             postalCode: postalCode,
             address: address,
@@ -197,7 +197,7 @@ export async function createAsaasSubscription(asaasCustomerId: string, body: obj
           },
           creditCardHolderInfo: {
             name: holderName,
-            email: softspacer.responsibleEmail,
+            email: workspace.responsibleEmail,
             cpfCnpj: cpfCnpj,
             postalCode: postalCode,
             address: address,
@@ -218,7 +218,7 @@ export async function createAsaasSubscription(asaasCustomerId: string, body: obj
 
     const { creditCardNumber, creditCardBrand, creditCardToken } = response?.data.creditCard;
 
-    const creditCardCreated = await CreditCard.create({ creditCardNumber, creditCardBrand, creditCardToken, softspacer }).save();
+    const creditCardCreated = await CreditCard.create({ creditCardNumber, creditCardBrand, creditCardToken, workspace }).save();
 
     const signature = {
       // asaasCustomerId: clientAsaas.id,

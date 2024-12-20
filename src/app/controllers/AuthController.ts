@@ -7,8 +7,9 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import Access from '@entities/Access';
-import { decrypt } from '@utils/encrypt';
-require('dotenv').config();
+import { decrypt } from '@utils/encrypt/encrypt';
+import dotenv from 'dotenv'
+dotenv.config();
 
 interface UserInterface {
   name?: string;
@@ -33,7 +34,7 @@ class AuthController {
       const user = await User.findOne(
         { email },
         {
-          select: ['id', 'email', 'name', 'passwordResetToken', 'passwordHash', 'picture',],
+          select: ['id', 'email', 'name', 'passwordResetToken', 'passwordHash', 'picture'],
         }
       );
 

@@ -5,7 +5,7 @@ import Workspace from '@entities/Workspace';
 import Whisper from '@entities/Whisper';
 import mediaInfo from 'mediainfo-wrapper';
 import Thread from '@entities/Thread';
-import { decrypt } from '@utils/encrypt';
+import { decrypt } from '@utils/encrypt/encrypt';
 import Assistant from '@entities/Assistant';
 dotenv.config();
 
@@ -45,7 +45,7 @@ export default async function whisper(id: string, workspace: Workspace, assistan
       duration: duration!,
       workspace,
       thread,
-      assistant, 
+      assistant,
     }).save();
 
     console.log(whisper);

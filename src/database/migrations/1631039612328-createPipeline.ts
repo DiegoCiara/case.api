@@ -15,7 +15,7 @@ export class createPipeline1631039612328 implements MigrationInterface {
             generationStrategy: 'uuid',
           },
           {
-            name: 'funnel',
+            name: 'workspace',
             type: 'uuid',
           },
           {
@@ -61,8 +61,8 @@ export class createPipeline1631039612328 implements MigrationInterface {
     await queryRunner.createForeignKey(
       'pipelines',
       new TableForeignKey({
-        columnNames: ['funnel'],
-        referencedTableName: 'funnels',
+        columnNames: ['workspace'],
+        referencedTableName: 'workspaces',
         referencedColumnNames: ['id'],
       })
     );

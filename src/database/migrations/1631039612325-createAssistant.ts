@@ -18,10 +18,6 @@ export class createAssistant1631039612325 implements MigrationInterface {
             type: 'uuid',
           },
           {
-            name: 'session',
-            type: 'uuid',
-          },
-          {
             name: 'name',
             type: 'varchar',
           },
@@ -65,14 +61,6 @@ export class createAssistant1631039612325 implements MigrationInterface {
       new TableForeignKey({
         columnNames: ['workspace'],
         referencedTableName: 'workspaces',
-        referencedColumnNames: ['id'],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'assistants',
-      new TableForeignKey({
-        columnNames: ['session'],
-        referencedTableName: 'sessions',
         referencedColumnNames: ['id'],
       })
     );

@@ -11,10 +11,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import Workspace from './Workspace';
-import Contact from './Contact';
 import Thread from './Thread';
 import User from './User';
-import Action from './Action';
 import Assistant from './Assistant';
 
 @Entity({ name: 'messages' })
@@ -34,15 +32,11 @@ class Message extends BaseEntity {
   @JoinColumn([{ name: 'assistant', referencedColumnName: 'id' }])
   assistant!: Assistant;
 
-  @ManyToOne(() => Contact, (user) => user.messages, { nullable: true })
-  @JoinColumn([{ name: 'contact', referencedColumnName: 'id' }])
-  contact!: Contact;
-
   @ManyToOne(() => User, (user) => user.messages, { nullable: true })
   @JoinColumn([{ name: 'user', referencedColumnName: 'id' }])
   user!: User;
 
-  @Column({ type: 'enum', enum: ['ASSISTANT', 'CONTACT', 'USER'] })
+  @Column({ type: 'enum', enum: ['ASSISTANT', 'USER'] })
   from!: string;
 
   @Column()

@@ -1,19 +1,8 @@
 import Thread from '@entities/Thread';
 import Workspace from '@entities/Workspace';
 import OpenAI from 'openai';
-import { RunSubmitToolOutputsParamsNonStreaming } from 'openai/resources/beta/threads/runs/runs';
-import { createDealCustomer } from '../actions/createDealCustomer';
-import Message from '@entities/Message';
-import { createCustomer } from '../actions/createCustomer';
-import { getDeal } from '../actions/getDeal';
-import { getCustomer } from '../actions/getCustomer';
-import { createAction } from '../functions/createAction';
-import { log } from '@utils/createLog';
 import Log from '@entities/Log';
-import User from '@entities/User';
 import Assistant from '@entities/Assistant';
-import { createMeet } from '../actions/createMeet';
-import { getTime } from '../actions/getTime';
 
 // Função para verificar se existe um run ativo
 export async function getActiveRun(openai: OpenAI, threadId: string) {
@@ -27,7 +16,7 @@ export async function getActiveRun(openai: OpenAI, threadId: string) {
 
 export async function checkRun(openai: OpenAI, thread: Thread, runId: string, workspace: Workspace, assistant: Assistant): Promise<any> {
   return await new Promise((resolve, reject) => {
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: any;
 
     const verify = async (): Promise<void> => {
       const runStatus = await openai.beta.threads.runs.retrieve(thread.threadId, runId);
@@ -46,230 +35,10 @@ export async function checkRun(openai: OpenAI, thread: Thread, runId: string, wo
         try {
           const toolOutputs = await Promise.all(
             toolCalls.map(async (tool: any) => {
-              // console.log(tool);
-              // console.log(tool?.submit_tool_outputs?.tool_calls);
 
               if (tool.function.name === 'getCustomer') {
-                const args = tool?.function?.arguments;
-                try {
-                  const action = await getCustomer(thread.contact, workspace, assistant);
-                  // console.log(tool);
-                  console.log(tool?.submit_tool_outputs?.tool_calls);
-                  // Esta Action Não pode ter criaçao de log de actions na falha, pois é essencial que falhe
-                  let message = action?.message;
-                  await createAction(tool.id, workspace, thread, thread.assistant, 'getCustomer', JSON.parse(args), action, 'COMPLETED');
-                  return {
-                    tool_call_id: tool.id,
-                    output: message,
-                  };
-                } catch (error) {
-                  console.error('errorSS', error);
-                  await createAction(
-                    tool.id,
-                    workspace,
-                    thread,
-                    thread.assistant,
-                    'getCustomer',
-                    JSON.parse(args),
-                    { error: error },
-                    'FAILED'
-                  );
-                  return {
-                    tool_call_id: tool.id,
-                    output: 'Ocorreu um erro ao tentar executar a função, tente novamente',
-                  };
-                }
-              }
 
-              if (tool.function.name === 'createCustomer') {
-                const args = tool.function.arguments;
-                try {
-                  const action = await createCustomer(thread.contact, workspace, args);
-                  console.log(tool?.submit_tool_outputs?.tool_calls);
-                  let message = action?.message;
-                  await createAction(tool.id, workspace, thread, thread.assistant, 'createCustomer', JSON.parse(args), action, 'COMPLETED');
-                  return {
-                    tool_call_id: tool.id,
-                    output: message,
-                  };
-                } catch (error) {
-                  console.error('errorSS', error);
-                  await createAction(
-                    tool.id,
-                    workspace,
-                    thread,
-                    thread.assistant,
-                    'createCustomer',
-                    JSON.parse(args),
-                    { error: error },
-                    'FAILED'
-                  );
-                  return {
-                    tool_call_id: tool.id,
-                    output: 'Ocorreu um erro ao tentar executar a função, tente novamente',
-                  };
-                }
               }
-              if (tool.function.name === 'getTime') {
-                const args = tool.function.arguments;
-                try {
-                  const action = await getTime();
-                  console.log(tool?.submit_tool_outputs?.tool_calls);
-                  let message = action?.message;
-                  await createAction(tool.id, workspace, thread, thread.assistant, 'getTime', JSON.parse(args), action, 'COMPLETED');
-                  return {
-                    tool_call_id: tool.id,
-                    output: message,
-                  };
-                } catch (error) {
-                  console.error('errorSS', error);
-                  await createAction(
-                    tool.id,
-                    workspace,
-                    thread,
-                    thread.assistant,
-                    'getTime',
-                    JSON.parse(args),
-                    { error: error },
-                    'FAILED'
-                  );
-                  return {
-                    tool_call_id: tool.id,
-                    output: 'Ocorreu um erro ao tentar executar a função, tente novamente',
-                  };
-                }
-              }
-
-              if (tool.function.name === 'createMeet') {
-                const args = tool.function.arguments;
-                try {
-                  const action = await createMeet(thread.contact, workspace, args);
-                  console.log(tool?.submit_tool_outputs?.tool_calls);
-                  let message = action?.message;
-                  await createAction(tool.id, workspace, thread, thread.assistant, 'createMeet', JSON.parse(args), action, 'COMPLETED');
-                  return {
-                    tool_call_id: tool.id,
-                    output: message,
-                  };
-                } catch (error) {
-                  console.error('errorSS', error);
-                  await createAction(
-                    tool.id,
-                    workspace,
-                    thread,
-                    thread.assistant,
-                    'createMeet',
-                    JSON.parse(args),
-                    { error: error },
-                    'FAILED'
-                  );
-                  return {
-                    tool_call_id: tool.id,
-                    output: 'Ocorreu um erro ao tentar executar a função, tente novamente',
-                  };
-                }
-              }
-
-              if (tool.function.name === 'createDealCustomer') {
-                const args = tool.function?.arguments;
-                try {
-                  const action = await createDealCustomer(thread.contact, workspace, thread, args);
-                  console.log(tool?.submit_tool_outputs?.tool_calls);
-                  let message = action?.message;
-                  await createAction(
-                    tool.id,
-                    workspace,
-                    thread,
-                    thread.assistant,
-                    'createDealCustomer',
-                    JSON.parse(args),
-                    action,
-                    'COMPLETED'
-                  );
-                  return {
-                    tool_call_id: tool.id,
-                    output: message,
-                  };
-                } catch (error) {
-                  console.error('errorSS', error);
-                  await createAction(
-                    tool.id,
-                    workspace,
-                    thread,
-                    thread.assistant,
-                    'createDealCustomer',
-                    JSON.parse(args),
-                    { error: error },
-                    'FAILED'
-                  );
-                  return {
-                    tool_call_id: tool.id,
-                    output: 'Ocorreu um erro ao tentar executar a função, tente novamente',
-                  };
-                }
-              }
-
-              if (tool.function.name === 'createDeal') {
-                const args = tool.function?.arguments;
-                try {
-                  const action = await createDealCustomer(thread.contact, workspace, thread, args);
-                  console.log(tool?.submit_tool_outputs?.tool_calls);
-                  let message = action?.message;
-                  await createAction(
-                    tool.id,
-                    workspace,
-                    thread,
-                    thread.assistant,
-                    'createDealCustomer',
-                    JSON.parse(args),
-                    action,
-                    'COMPLETED'
-                  );
-                  return {
-                    tool_call_id: tool.id,
-                    output: message,
-                  };
-                } catch (error) {
-                  console.error('errorSS', error);
-                  await createAction(
-                    tool.id,
-                    workspace,
-                    thread,
-                    thread.assistant,
-                    'createDealCustomer',
-                    JSON.parse(args),
-                    { error: error },
-                    'FAILED'
-                  );
-                  return {
-                    tool_call_id: tool.id,
-                    output: 'Ocorreu um erro ao tentar executar a função, tente novamente',
-                  };
-                }
-              }
-
-              if (tool.function.name === 'getDeal') {
-                const args = tool.function?.arguments;
-                try {
-                  const action = await getDeal(thread.contact, workspace, args);
-                  console.log(tool?.submit_tool_outputs?.tool_calls);
-                  let message = action?.message;
-                  await createAction(tool.id, workspace, thread, thread.assistant, 'getDeal', JSON.parse(args), action, 'COMPLETED');
-                  return {
-                    tool_call_id: tool.id,
-                    output: message || 'Ocorreu um erro ao consultar as informações da negociação, tente novamente',
-                  };
-                } catch (error) {
-                  console.error('errorSS', error);
-                  await createAction(tool.id, workspace, thread, thread.assistant, 'getDeal', JSON.parse(args), { error: error }, 'FAILED');
-                  return {
-                    tool_call_id: tool.id,
-                    output: 'Ocorreu um erro ao tentar executar a função, tente novamente',
-                  };
-                }
-              }
-              // Colocar outras funções
-
               return null;
             })
           );

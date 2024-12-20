@@ -90,14 +90,6 @@ export class createMessage1631039612336 implements MigrationInterface {
     await queryRunner.createForeignKey(
       'messages',
       new TableForeignKey({
-        columnNames: ['contact'],
-        referencedTableName: 'contacts',
-        referencedColumnNames: ['id'],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'messages',
-      new TableForeignKey({
         columnNames: ['user'],
         referencedTableName: 'users',
         referencedColumnNames: ['id'],
