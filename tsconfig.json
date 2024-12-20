@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "baseUrl": ".",
+    "outDir": "./build",
+    "module": "commonjs",
+    "strict": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "types": ["node", "jest"],
+    "noEmit": false,
+    "skipLibCheck": true,
+    "removeComments": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "paths": {
+      "@controllers/*": ["./src/app/controllers/*"],
+      "@middlewares/*": ["./src/app/middlewares/*"],
+      "@entities/*": ["./src/app/entities/*"],
+      "@config/*": ["./src/config/*"],
+      "@routes/*": ["./src/routes/*"],
+      "@utils/*": ["src/utils/*"],
+      "@openai/*": ["src/utils/openai/*"],
+      "@src/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "__tests__", "setup.js", "src/app/.ts", "downloadAudio.js", "revRun.ts", "src/utils/openai/checks/.ts"]
+  // "exclude": ["node_modules"]
+}
+
