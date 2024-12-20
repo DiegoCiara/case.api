@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import Plans from '@entities/Plan';
 import queryBuilder from '@utils/queryBuilder';
-import { log } from '@utils/createLog';
+import { log } from '@utils/functions/createLog';
 
 interface PlanInterface {
   name?: string;
@@ -37,10 +37,10 @@ class PlanController {
       //   plans: groupedByModel[model],
       // }));
 
-      await log('plans', req, 'findPlans', 'success', JSON.stringify(plans), null)
+      await log('plans', req, 'findPlans', 'success', JSON.stringify(plans), null);
       return res.status(200).json(plans);
     } catch (error) {
-      await log('plans', req, 'findPlans', 'failed', JSON.stringify(error), null)
+      await log('plans', req, 'findPlans', 'failed', JSON.stringify(error), null);
       return res.status(400).json({ error: 'Find plans failed, try again' });
     }
   }
@@ -54,11 +54,11 @@ class PlanController {
       if (!plan) return res.status(404).json({ message: 'Plans not exist' });
 
       // plan.passwordHash = undefined;
-      await log('plans', req, 'findPlanById', 'success', JSON.stringify({ id: id }), id)
+      await log('plans', req, 'findPlanById', 'success', JSON.stringify({ id: id }), id);
 
       return res.status(200).json(plan);
     } catch (error) {
-      await log('plans', req, 'findPlanById', 'failed', JSON.stringify(error), null)
+      await log('plans', req, 'findPlanById', 'failed', JSON.stringify(error), null);
       return res.status(400).json({ error: 'Find plan failed, try again' });
     }
   }

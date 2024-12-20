@@ -1,7 +1,7 @@
 import { Between, getRepository } from 'typeorm';
 import Workspace from '@entities/Workspace';
 import Notification from '@entities/Notification';
-import eventEmitter from './emitter';
+import eventEmitter from '../emitter';
 
 export async function notify(workspace: Workspace, notification: Notification) {
   try {

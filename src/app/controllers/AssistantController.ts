@@ -1,7 +1,7 @@
 import Workspace from '@entities/Workspace';
 import { Request, Response } from 'express';
 import Assistant from '@entities/Assistant';
-import { log } from '@utils/createLog';
+import { log } from '@utils/functions/createLog';
 import { decrypt } from '@utils/encrypt/encrypt';
 import OpenAI from 'openai';
 import Vector from '@entities/Vector';
@@ -125,15 +125,7 @@ class AssistantController {
 
   public async update(req: Request, res: Response): Promise<Response> {
     try {
-      const {
-        name,
-        instructions,
-        temperature,
-        vector,
-        model,
-        functions,
-        purpose,
-      }: AssistantInterface = req.body;
+      const { name, instructions, temperature, vector, model, functions, purpose }: AssistantInterface = req.body;
       const { id, assistantId } = req.params;
 
       if (!id || !assistantId) return res.status(404).json({ message: 'Send id' });

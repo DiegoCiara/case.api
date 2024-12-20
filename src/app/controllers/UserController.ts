@@ -2,8 +2,8 @@ import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import Users from '@entities/User';
 import queryBuilder from '@utils/queryBuilder';
-import emailValidator from '@utils/emailValidator';
-import generatePassword from '@utils/generatePassword';
+import emailValidator from '@utils/functions/emailValidator';
+import generatePassword from '@utils/functions/generatePassword';
 import transport from '@src/modules/mailer';
 import sendMail from '@src/services/sendEmail';
 import crypto from 'crypto';
@@ -12,10 +12,10 @@ import Access from '@entities/Access';
 import User from '@entities/User';
 import Notification from '@entities/Notification';
 import eventEmitter from '@utils/emitter';
-import { notify } from '@utils/createNotifications';
+import { notify } from '@utils/functions/createNotifications';
 import { In } from 'typeorm';
 import { s3 } from '@utils/s3';
-import { log } from '@utils/createLog';
+import { log } from '@utils/functions/createLog';
 import { ioSocket } from '@src/socket';
 
 interface UserInterface {
@@ -81,9 +81,9 @@ class UserController {
     try {
       const { id } = req.params;
 
-      if ( !id) return res.status(400).json({ message: 'Invalid values for User' });
+      if (!id) return res.status(400).json({ message: 'Invalid values for User' });
 
-      const workspace = await Workspace.findOne(id, { relations: [ 'accesses', 'accesses.user']});
+      const workspace = await Workspace.findOne(id, { relations: ['accesses', 'accesses.user'] });
 
       if (!workspace) return res.status(404).json({ error: 'Authenticate failed, try again' });
 
@@ -178,7 +178,7 @@ class UserController {
 
       return res.status(200).json({ ...user, role: access.role });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       await log('users', req, 'findUserById', 'failed', JSON.stringify(error), null);
       return res.status(400).json({ error: 'Find user failed, try again' });
     }
@@ -198,7 +198,7 @@ class UserController {
 
       const password = generatePassword();
 
-      const userName = (name);
+      const userName = name;
 
       const client = process.env.CLIENT_CONNECTION;
 
@@ -249,7 +249,7 @@ class UserController {
 
       const password = generatePassword();
 
-      const userName = (name);
+      const userName = name;
 
       const client = process.env.CLIENT_CONNECTION;
 
@@ -273,8 +273,7 @@ class UserController {
             workspace,
           }).save();
 
-
-      eventEmitter.emit(`accessPlayground`, findUser.id)
+          eventEmitter.emit(`accessPlayground`, findUser.id);
 
           await sendMail('inviteUser.html', 'acesso', `Bem vindo ${userName}`, { client, name, email, password, id });
           return res.status(201).json(findUser.id);
@@ -301,7 +300,7 @@ class UserController {
 
         await log('users', req, 'inviteWorkspace', 'success', JSON.stringify({ id: id }), user);
 
-        eventEmitter.emit(`accessPlayground`, user.id)
+        eventEmitter.emit(`accessPlayground`, user.id);
 
         return res.status(201).json(user.id);
       }
@@ -349,7 +348,7 @@ class UserController {
 
       await log('users', req, 'update', 'success', JSON.stringify({ id: id }), valuesToUpdate);
 
-      eventEmitter.emit(`accessPlayground`, user.id)
+      eventEmitter.emit(`accessPlayground`, user.id);
 
       return res.status(200).json();
     } catch (error) {
@@ -362,7 +361,6 @@ class UserController {
   public async updatePicture(req: Request, res: Response): Promise<Response> {
     try {
       const { id, userId } = req.params;
-
 
       const { picture }: UserInterface = req.body;
       const user = await Users.findOne(userId);
@@ -377,7 +375,6 @@ class UserController {
       const fileType = await picture!.split(';')[0].split('/')[1]; // extraindo o tipo de arquivo (png, jpeg, etc.)
 
       const location = await s3(buffer!, workspace, 'users', user, 'image', fileType);
-
 
       if (!location) return res.status(404).json({ message: 'Cannot find workspace' });
 

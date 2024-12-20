@@ -5,7 +5,7 @@ import queryBuilder from '@utils/queryBuilder';
 import Workspace from '@entities/Workspace';
 import { In, getManager } from 'typeorm';
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid';
-import { log } from '@utils/createLog';
+import { log } from '@utils/functions/createLog';
 import User from '@entities/User';
 import Access from '@entities/Access';
 import Thread from '@entities/Thread';
@@ -21,7 +21,6 @@ interface PipelineInterface {
 }
 
 class PipelineController {
-
   public async findAll(req: Request, res: Response): Promise<Response> {
     try {
       const id = req.params.id;
@@ -108,7 +107,6 @@ class PipelineController {
         description: description || pipeline?.description,
         color: color || pipeline?.color,
       };
-
 
       await Pipelines.update(id, { ...valuesToUpdate });
 

@@ -3,7 +3,7 @@ import Vision from '@entities/Vision';
 import probe from 'probe-image-size';
 import OpenAI from 'openai';
 import Thread from '@entities/Thread';
-import { decrypt } from './encrypt/encrypt';
+import { decrypt } from '../encrypt/encrypt';
 import Assistant from '@entities/Assistant';
 
 /**

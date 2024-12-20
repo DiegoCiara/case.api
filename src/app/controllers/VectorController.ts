@@ -1,7 +1,7 @@
 import Workspace from '@entities/Workspace';
 import { Request, Response } from 'express';
 import Vector from '@entities/Vector';
-import { log } from '@utils/createLog';
+import { log } from '@utils/functions/createLog';
 import AWS from 'aws-sdk';
 import { decrypt } from '@utils/encrypt/encrypt';
 import OpenAI from 'openai';

@@ -3,7 +3,7 @@ import ThreadController from '@controllers/ThreadController';
 
 const routes = Router();
 
-routes.post('/runThread', ThreadController.runThread);
+// routes.post('/runThread', ThreadController.runThread);
 
 export default routes;
 
