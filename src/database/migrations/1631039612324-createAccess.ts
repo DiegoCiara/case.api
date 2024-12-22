@@ -24,13 +24,8 @@ export class createAccess1631039612324 implements MigrationInterface {
           {
             name: 'role',
             type: 'enum',
-            enum: ['OWNER', 'ADMIN', 'LEADER', 'SELLER', 'SUPPORT'],
-            default: `'OWNER'`,
-          },
-          {
-            name: 'permissions',
-            type: 'jsonb',
-            default: `'{"pages": []}'`,
+            enum: ['OWNER', 'ADMIN', 'MEMBER', 'SUPPORT'],
+            default: `'MEMBER'`,
           },
           {
             name: 'createdAt',

@@ -31,11 +31,8 @@ class Access extends BaseEntity {
   @JoinColumn([{ name: 'user', referencedColumnName: 'id' }])
   user!: User;
 
-  @Column({ type: 'enum', enum: ['OWNER','LEADER', 'ADMIN', 'SELLER', 'SUPPORT'], default: 'OWNER' })
+  @Column({ type: 'enum', enum: ['OWNER', 'ADMIN', 'MEMBER', 'SUPPORT'], default: 'MEMBER' })
   role!: string;
-
-  @Column({ type: 'jsonb', default: { pages: [] } })
-  permissions!: any;
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -63,6 +63,12 @@ export async function SocketEmitController(socketPlatform: Server) {
     socket.off('notify', notify);
     socket.on('notify', notify);
 
+    const sourceUsers = async (workspaceId: string) => {
+      socket.emit(`users:${workspaceId}`);
+    };
+    socket.off('sourceUsers', sourceUsers);
+    socket.on('sourceUsers', sourceUsers);
+
     // const newNotification = async (notification: Notification) => {
     //   const workspace = notification.workspace;
     //   const user = notification.user;
@@ -128,6 +134,7 @@ export async function SocketEmitController(socketPlatform: Server) {
     const disconnect = () => {
       console.log('Usuário desconectado');
       socket.removeAllListeners('permission');
+      socket.removeAllListeners('sourceUsers');
       socket.removeAllListeners('notify');
       socket.removeAllListeners('viewMessages');
     };

@@ -31,11 +31,16 @@ interface UserInterface {
 class UserController {
   public async findUsers(req: Request, res: Response): Promise<Response> {
     try {
-      const id = req.params.id;
 
-      const workspace = await Workspace.findOne(id);
+      const workspaceId = req.header('workspaceId')
 
-      const accesses = await Access.find({ where: { workspace: workspace }, relations: ['user'] });
+      console.log(workspaceId)
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if(!workspace) return res.status(404).json({ error: 'Workspace não encontrado' });
+
+      const accesses = await Access.find({  relations: ['user'] });
 
       const users: any = await Promise.all(
         accesses.map(async (access: any) => {
@@ -48,7 +53,7 @@ class UserController {
       );
       // const users = await Users.find({ where: { accesses: In(accesses)}});
       // users.map((user: { passwordHash: undefined }) => (user.passwordHash = undefined));
-      await log('users', req, 'findUsers', 'success', JSON.stringify({ id: id }), id);
+      await log('users', req, 'findUsers', 'success', JSON.stringify({ id: workspaceId }), workspaceId);
       return res.status(200).json(users);
     } catch (error) {
       await log('users', req, 'findUsers', 'failed', JSON.stringify(error), null);
@@ -186,19 +191,25 @@ class UserController {
 
   public async create(req: Request, res: Response): Promise<Response> {
     try {
-      const { name, email }: UserInterface = req.body;
+      const { email }: UserInterface = req.body;
 
-      if (!name || !email || !emailValidator(email)) return res.status(400).json({ message: 'Invalid values for new Users!' });
+      const workspaceId = req.header('workspaceId')
+
+      console.log(workspaceId)
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!email || !emailValidator(email)) return res.status(400).json({ message: 'Invalid values for new Users!' });
 
       // Users.findOne({ email }, { withDeleted: true });
 
-      const findUser = await Users.findOne({ email });
+      const findUser = await Users.findOne({ where: { workspace, email } });
 
       if (findUser) return res.status(400).json({ message: 'Users already exists' });
 
       const password = generatePassword();
 
-      const userName = name;
+      const userName = email;
 
       const client = process.env.CLIENT_CONNECTION;
 
@@ -213,7 +224,7 @@ class UserController {
       // const passwordHash = "password";
 
       const user = await Users.create({
-        name,
+        name: email,
         email,
         passwordHash,
         passwordResetToken: token,
@@ -235,21 +246,23 @@ class UserController {
 
   public async inviteWorkspace(req: Request, res: Response): Promise<Response> {
     try {
-      const id = req.params.id;
+      const id = req.header('workspaceId')
 
-      const { name, email, role }: UserInterface = req.body;
-
-      if (!id || !name || !email || !emailValidator(email)) return res.status(400).json({ message: 'Invalid values for new Users!' });
+      console.log(id)
 
       const workspace = await Workspace.findOne(id);
 
       if (!workspace) return res.status(404).json({ message: 'Cannot find Workspace' });
 
+      const { email, role }: UserInterface = req.body;
+
+      if (!id || !email || !emailValidator(email)) return res.status(400).json({ message: 'Invalid values for new Users!' });
+
       const findUser = await Users.findOne({ email });
 
       const password = generatePassword();
 
-      const userName = name;
+      const userName = '';
 
       const client = process.env.CLIENT_CONNECTION;
 
@@ -265,7 +278,7 @@ class UserController {
         const findWorkspace = await Access.findOne({ where: { user: findUser, workspace: workspace } });
 
         if (findWorkspace) {
-          return res.status(413).json({ message: 'Cannot find Workspace' });
+          return res.status(409).json({ message: 'Este usuário já está cadastrado' });
         } else {
           const access = await Access.create({
             user: findUser,
@@ -275,12 +288,12 @@ class UserController {
 
           eventEmitter.emit(`accessPlayground`, findUser.id);
 
-          await sendMail('inviteUser.html', 'acesso', `Bem vindo ${userName}`, { client, name, email, password, id });
+          await sendMail('inviteUser.html', 'acesso', `Bem vindo ${userName}`, { client, name: '', email, password, id });
           return res.status(201).json(findUser.id);
         }
       } else {
         const user = await Users.create({
-          name,
+          name: '',
           email,
           passwordHash,
           passwordResetToken: token,
@@ -296,7 +309,7 @@ class UserController {
         }).save();
 
         // user.passwordHash = undefined;
-        await sendMail('newUser.html', 'acesso', `Bem vindo ${userName}`, { client, name, email, password });
+        await sendMail('newUser.html', 'acesso', `Bem vindo ${userName}`, { client, name: '', email, password });
 
         await log('users', req, 'inviteWorkspace', 'success', JSON.stringify({ id: id }), user);
 

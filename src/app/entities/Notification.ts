@@ -32,7 +32,7 @@ class Notification extends BaseEntity {
   @Column({ nullable: true })
   description!: string;
 
-  @Column({ type: 'enum', enum: ['OWNER', 'ADMIN', 'SELLER'], default: 'OWNER' })
+  @Column({ type: 'enum', enum: ['OWNER', 'ADMIN', 'MEMBER'], default: 'OWNER' })
   role!: string;
 
   @Column({ default: false })

@@ -15,9 +15,6 @@ interface AssistantInterface {
   model: string;
   vector?: Vector;
   purpose: string;
-  wppEnabled?: boolean;
-  openaiAssistantId?: string;
-  wppDelayResponse?: any;
   functions: any;
 }
 
