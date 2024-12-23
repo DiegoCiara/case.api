@@ -19,7 +19,7 @@ routes.put('/picture/:id/:userId', ensureAuthenticated, UserController.updatePic
 routes.get('/permissions/:id/:workspaceId', UserController.getPermission);
 routes.get('/notify/:id/:workspaceId', UserController.getNotifications);
 routes.post('/:id', UserController.create);
-routes.delete('/:id/:userId', ensureAuthenticated, UserController.delete);
+routes.delete('/access/:id', ensureAuthenticated, UserController.removeAccess);
 routes.put('/update-password/:id', ensureAuthenticated, ensureProfile, UserController.passwordUpdate);
 
 export default routes;

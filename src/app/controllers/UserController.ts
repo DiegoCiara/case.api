@@ -213,8 +213,8 @@ class UserController {
       const accessResponse = {
         name: access.user.name,
         email: access.user.email,
-        role: access.role
-      }
+        role: access.role,
+      };
 
       return res.status(200).json(accessResponse);
     } catch (error) {
@@ -465,13 +465,13 @@ class UserController {
     }
   }
 
-  public async delete(req: Request, res: Response): Promise<Response> {
+  public async removeAccess(req: Request, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
 
       const workspaceId = req.header('workspaceId');
 
-      const workspace = await Workspace.findOne(id);
+      const workspace = await Workspace.findOne(workspaceId);
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
@@ -479,11 +479,14 @@ class UserController {
 
       if (!access) return res.status(404).json({ message: 'Acesso não encontrado' });
 
-      await Access.delete(access);
+      await Access.softRemove(access);
 
       await log('users', req, 'delete', 'success', JSON.stringify({ id: id }), access);
 
-      return res.status(200).json();
+      (await ioSocket).emit(`users:${workspaceId}`);
+
+      console.log('usuário removido');
+      return res.status(200).json({ message: 'Usuário removido com sucesso' });
     } catch (error) {
       await log('users', req, 'delete', 'failed', JSON.stringify(error), null);
       return res.status(400).json({ error: 'Remove failed, try again' });
