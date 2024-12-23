@@ -11,8 +11,10 @@ routes.post('/invite', UserController.inviteWorkspace);
 
 
 routes.get('/accesses/:id', ensureAuthenticated, UserController.getAccesses);
-routes.get('/:id/:userId', ensureAuthenticated, UserController.findUserById);
-routes.put('/:id/:userId', ensureAuthenticated, UserController.update);
+routes.get('/access/:id', ensureAuthenticated, UserController.findAccessById);
+routes.get('/:id', ensureAuthenticated, UserController.findUserById);
+routes.put('/access/:id', ensureAuthenticated, UserController.update);
+routes.put('/:id', ensureAuthenticated, UserController.updateUser);
 routes.put('/picture/:id/:userId', ensureAuthenticated, UserController.updatePicture);
 routes.get('/permissions/:id/:workspaceId', UserController.getPermission);
 routes.get('/notify/:id/:workspaceId', UserController.getNotifications);

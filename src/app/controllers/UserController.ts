@@ -16,7 +16,7 @@ import { notify } from '@utils/functions/createNotifications';
 import { In } from 'typeorm';
 import { s3 } from '@utils/s3';
 import { log } from '@utils/functions/createLog';
-import { ioSocket } from '@src/socket';
+import { io, ioSocket } from '@src/socket';
 
 interface UserInterface {
   name?: string;
@@ -31,22 +31,22 @@ interface UserInterface {
 class UserController {
   public async findUsers(req: Request, res: Response): Promise<Response> {
     try {
+      const workspaceId = req.header('workspaceId');
 
-      const workspaceId = req.header('workspaceId')
-
-      console.log(workspaceId)
+      console.log(workspaceId);
 
       const workspace = await Workspace.findOne(workspaceId);
 
-      if(!workspace) return res.status(404).json({ error: 'Workspace não encontrado' });
+      if (!workspace) return res.status(404).json({ error: 'Workspace não encontrado' });
 
-      const accesses = await Access.find({  relations: ['user'] });
+      const accesses = await Access.find({ relations: ['user'] });
 
       const users: any = await Promise.all(
         accesses.map(async (access: any) => {
           return {
-            ...access.user,
-            passwordHash: undefined,
+            accessId: access.id,
+            name: access.user.name || 'Não cadastrado',
+            email: access.user.email,
             role: access.role,
           };
         })
@@ -165,13 +165,17 @@ class UserController {
 
   public async findUserById(req: Request, res: Response): Promise<Response> {
     try {
-      const { id, userId } = req.params;
+      const { id } = req.params;
 
-      const workspace = await Workspace.findOne(id);
+      const workspaceId = req.header('workspaceId');
+
+      console.log(workspaceId);
+
+      const workspace = await Workspace.findOne(workspaceId);
 
       if (!workspace) return res.status(404).json({ message: 'Users not exist' });
 
-      const user = await Users.findOne(userId);
+      const user = await Users.findOne(id);
 
       if (!user) return res.status(404).json({ message: 'Users not exist' });
 
@@ -179,13 +183,44 @@ class UserController {
 
       if (!access) return res.status(404).json({ message: 'Access not exist' });
 
-      await log('users', req, 'findUserById', 'success', JSON.stringify({ id: id }), id);
+      await log('users', req, 'findUserById', 'success', JSON.stringify({ id: workspaceId }), workspaceId);
 
       return res.status(200).json({ ...user, role: access.role });
     } catch (error) {
       console.log(error);
       await log('users', req, 'findUserById', 'failed', JSON.stringify(error), null);
-      return res.status(400).json({ error: 'Find user failed, try again' });
+      return res.status(500).json({ error: 'Find user failed, try again' });
+    }
+  }
+  public async findAccessById(req: Request, res: Response): Promise<Response> {
+    try {
+      const { id } = req.params;
+
+      const workspaceId = req.header('workspaceId');
+
+      console.log(workspaceId);
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const access = await Access.findOne(id, { where: { workspace }, relations: ['user'] });
+
+      if (!access) return res.status(404).json({ message: 'Acesso não encontrado' });
+
+      await log('users', req, 'findAccessById', 'success', JSON.stringify({ id: workspaceId }), workspaceId);
+
+      const accessResponse = {
+        name: access.user.name,
+        email: access.user.email,
+        role: access.role
+      }
+
+      return res.status(200).json(accessResponse);
+    } catch (error) {
+      console.log(error);
+      await log('users', req, 'findAccessById', 'failed', JSON.stringify(error), null);
+      return res.status(500).json({ error: 'Find user failed, try again' });
     }
   }
 
@@ -193,9 +228,9 @@ class UserController {
     try {
       const { email }: UserInterface = req.body;
 
-      const workspaceId = req.header('workspaceId')
+      const workspaceId = req.header('workspaceId');
 
-      console.log(workspaceId)
+      console.log(workspaceId);
 
       const workspace = await Workspace.findOne(workspaceId);
 
@@ -246,9 +281,9 @@ class UserController {
 
   public async inviteWorkspace(req: Request, res: Response): Promise<Response> {
     try {
-      const id = req.header('workspaceId')
+      const id = req.header('workspaceId');
 
-      console.log(id)
+      console.log(id);
 
       const workspace = await Workspace.findOne(id);
 
@@ -313,7 +348,7 @@ class UserController {
 
         await log('users', req, 'inviteWorkspace', 'success', JSON.stringify({ id: id }), user);
 
-        eventEmitter.emit(`accessPlayground`, user.id);
+        (await ioSocket).emit(`users:${id}`);
 
         return res.status(201).json(user.id);
       }
@@ -326,49 +361,76 @@ class UserController {
 
   public async update(req: Request, res: Response): Promise<Response> {
     try {
-      const { id, userId } = req.params;
+      const { id } = req.params;
 
-      const { name, email, role, picture, notifyEnabled }: UserInterface = req.body;
+      const workspaceId = req.header('workspaceId');
 
-      if (email && !emailValidator(email)) return res.status(400).json({ message: 'Invalid email for Users!' });
+      const { role }: UserInterface = req.body;
 
-      const user = await Users.findOne(userId);
+      const workspace = await Workspace.findOne(workspaceId);
 
-      if (!user) return res.status(404).json({ message: 'Cannot find user' });
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado.' });
 
-      const workspace = await Workspace.findOne(id);
+      const access = await Access.findOne(id, { where: { workspace } });
 
-      if (!workspace) return res.status(404).json({ message: 'Cannot find user' });
-
-      let valuesToUpdate: UserInterface;
-
-      const shouldUpdatenotifyEnabled = user.notifyEnabled !== notifyEnabled;
-      const updatednotifyEnabled = shouldUpdatenotifyEnabled ? notifyEnabled : user.notifyEnabled;
-
-      valuesToUpdate = {
-        name: name || user.name,
-        email: email || user.email,
-        picture: picture || user.picture,
-        notifyEnabled: updatednotifyEnabled,
-      };
-      await Users.update(userId, { ...valuesToUpdate });
-
-      const access = await Access.findOne({ where: { workspace, user } });
-
-      if (!access) return res.status(404).json({ message: 'Este usuário não faz parte deste workspace' });
+      if (!access) return res.status(404).json({ message: 'Este usuário não faz parte deste workspace.' });
 
       await Access.update(access.id, { role: role || access!.role });
 
-      await log('users', req, 'update', 'success', JSON.stringify({ id: id }), valuesToUpdate);
+      await log('users', req, 'update', 'success', JSON.stringify({ id: id }), role);
 
-      eventEmitter.emit(`accessPlayground`, user.id);
+      (await ioSocket).emit(`users:${workspaceId}`);
 
       return res.status(200).json();
     } catch (error) {
       console.error(error);
       await log('users', req, 'update', 'failed', JSON.stringify(error), null);
+      return res.status(500).json({ message: 'Falha ao atualizar, tente novamente.' });
+    }
+  }
 
-      return res.status(400).json({ error: 'Update failed, try again' });
+  public async updateUser(req: Request, res: Response): Promise<Response> {
+    try {
+      const { id } = req.params;
+
+      const workspaceId = req.header('workspaceId');
+
+      const { name, email, role, picture }: UserInterface = req.body;
+
+      if (email && !emailValidator(email)) return res.status(400).json({ message: 'Formato de e-mail inválido.' });
+
+      const user = await Users.findOne(id);
+
+      if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado.' });
+
+      let valuesToUpdate: UserInterface;
+
+      valuesToUpdate = {
+        name: name || user.name,
+        email: email || user.email,
+        picture: picture || user.picture,
+      };
+      await Users.update(user.id, { ...valuesToUpdate });
+
+      const access = await Access.findOne({ where: { workspace, user } });
+
+      if (!access) return res.status(404).json({ message: 'Este usuário não faz parte deste workspace.' });
+
+      await Access.update(access.id, { role: role || access!.role });
+
+      await log('users', req, 'update', 'success', JSON.stringify({ id: id }), valuesToUpdate);
+
+      (await ioSocket).emit(`users:${workspaceId}`);
+
+      return res.status(200).json();
+    } catch (error) {
+      console.error(error);
+      await log('users', req, 'update', 'failed', JSON.stringify(error), null);
+      return res.status(500).json({ message: 'Falha ao atualizar, tente novamente.' });
     }
   }
   public async updatePicture(req: Request, res: Response): Promise<Response> {
@@ -405,21 +467,20 @@ class UserController {
 
   public async delete(req: Request, res: Response): Promise<Response> {
     try {
-      const { id, userId } = req.params;
+      const { id } = req.params;
 
-      const user = await Users.findOne(userId);
-
-      if (!user) return res.status(404).json({ message: 'Cannot find user' });
+      const workspaceId = req.header('workspaceId');
 
       const workspace = await Workspace.findOne(id);
 
-      if (!workspace) return res.status(404).json({ message: 'Cannot find workspace' });
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
-      const access = await Access.findOne({ where: { user, workspace } });
+      const access = await Access.findOne(id, { where: { workspace } });
 
-      if (!access) return res.status(404).json({ message: 'Cannot find access' });
+      if (!access) return res.status(404).json({ message: 'Acesso não encontrado' });
 
-      await Access.softRemove(access);
+      await Access.delete(access);
+
       await log('users', req, 'delete', 'success', JSON.stringify({ id: id }), access);
 
       return res.status(200).json();

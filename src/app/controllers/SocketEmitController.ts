@@ -63,11 +63,12 @@ export async function SocketEmitController(socketPlatform: Server) {
     socket.off('notify', notify);
     socket.on('notify', notify);
 
-    const sourceUsers = async (workspaceId: string) => {
-      socket.emit(`users:${workspaceId}`);
-    };
-    socket.off('sourceUsers', sourceUsers);
-    socket.on('sourceUsers', sourceUsers);
+    // const sourceUsers = async (workspaceId: string) => {
+    //   console.log('CHEGOU NO SOURCE USERS')
+    //   socket.emit(`users:${workspaceId}`);
+    // };
+    // socket.off('sourceUsers', sourceUsers);
+    // socket.on('sourceUsers', sourceUsers);
 
     // const newNotification = async (notification: Notification) => {
     //   const workspace = notification.workspace;
