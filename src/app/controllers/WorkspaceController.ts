@@ -17,25 +17,43 @@ class WorkspaceController {
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });
     }
   }
-  public async updateWorkspace(req: Request, res: Response): Promise<any> {
-    const id = req.params.id;
+  public async findWorkspace(req: Request, res: Response): Promise<Response> {
     try {
-      const { name, color, picture, enterpriseName, cnpj } = req.body;
+      const workspaceId = req.header('workspaceId');
 
-      if (!id) return res.status(400).json({ message: 'Please send a workspace id' });
+      console.log('oims');
+      const workspace = await Workspace.findOne(workspaceId, { relations: ['plan', 'creditCards' ]});
 
-      const workspace = await Workspace.update(id, {
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      return res.status(200).json(workspace);
+    } catch (error) {
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+  public async updateWorkspace(req: Request, res: Response): Promise<any> {
+    try {
+      const workspaceId = req.header('workspaceId');
+
+      console.log('update wokrpsace');
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado.' });
+
+      const { name, color, picture } = req.body;
+
+      if (!workspace) return res.status(404).json({ message: 'Informe um nome para seu workspace.' });
+
+      const update = await Workspace.update(workspace.id, {
         picture,
         name,
         color,
       });
 
-      if (!workspace) return res.status(404).json({ message: 'Cannot find workspace' });
-
       return res.status(200).json({});
     } catch (error) {
       console.error(error);
-      return res.status(404).json({ error: 'Conection failed, try again' });
+      return res.status(404).json({ message: 'Algo deu errado, tente novamente.' });
     }
   }
   public async updateOpenaiApiKey(req: Request, res: Response): Promise<any> {
