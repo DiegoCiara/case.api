@@ -167,25 +167,15 @@ class UserController {
     try {
       const { id } = req.params;
 
-      const workspaceId = req.header('workspaceId');
-
-      console.log(workspaceId);
-
-      const workspace = await Workspace.findOne(workspaceId);
-
-      if (!workspace) return res.status(404).json({ message: 'Users not exist' });
-
+      console.log('FIND USER BAI AIDI', id)
+      
       const user = await Users.findOne(id);
 
       if (!user) return res.status(404).json({ message: 'Users not exist' });
 
-      const access = await Access.findOne({ where: { user, workspace } });
+      await log('users', req, 'findUserById', 'success', JSON.stringify({ id: id }), id);
 
-      if (!access) return res.status(404).json({ message: 'Access not exist' });
-
-      await log('users', req, 'findUserById', 'success', JSON.stringify({ id: workspaceId }), workspaceId);
-
-      return res.status(200).json({ ...user, role: access.role });
+      return res.status(200).json({ ...user });
     } catch (error) {
       console.log(error);
       await log('users', req, 'findUserById', 'failed', JSON.stringify(error), null);
