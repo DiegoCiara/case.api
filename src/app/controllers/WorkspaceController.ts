@@ -6,23 +6,17 @@ import { io } from '@src/socket';
 import Thread from '@entities/Thread';
 import { encrypt } from '@utils/encrypt/encrypt';
 import OpenAI from 'openai';
+import CreditCard from '@entities/CreditCard';
+import { createCustomer } from '@utils/stripe/customer/createCustomer';
+import { listInvoices } from '@utils/stripe/invoices/listInvoices';
 
 class WorkspaceController {
-  public async findAll(req: Request, res: Response): Promise<Response> {
-    try {
-      const workspaces = await Workspace.find();
-
-      return res.status(200).json(workspaces);
-    } catch (error) {
-      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
-    }
-  }
   public async findWorkspace(req: Request, res: Response): Promise<Response> {
     try {
       const workspaceId = req.header('workspaceId');
 
       console.log('oims');
-      const workspace = await Workspace.findOne(workspaceId, { relations: ['plan', 'creditCards' ]});
+      const workspace = await Workspace.findOne(workspaceId, { relations: ['plan', 'creditCards'] });
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
@@ -31,18 +25,58 @@ class WorkspaceController {
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });
     }
   }
+
+  public async listInvoices(req: Request, res: Response): Promise<Response> {
+    try {
+      const workspaceId = req.header('workspaceId');
+
+      console.log('oims');
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const customer = await listInvoices(workspace.subscriptionId);
+
+      const { data }: any = customer;
+
+      return res.status(200).json(data);
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+
+  public async listPaymentMethods(req: Request, res: Response): Promise<Response> {
+    try {
+      const workspaceId = req.header('workspaceId');
+
+      console.log('oims');
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const customer = await listInvoices(workspace.subscriptionId);
+
+      const { data }: any = customer;
+
+      return res.status(200).json(data);
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+
   public async updateWorkspace(req: Request, res: Response): Promise<any> {
     try {
       const workspaceId = req.header('workspaceId');
 
-      console.log('update wokrpsace');
       const workspace = await Workspace.findOne(workspaceId);
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado.' });
 
       const { name, color, picture } = req.body;
 
-      if (!workspace) return res.status(404).json({ message: 'Informe um nome para seu workspace.' });
+      if (!name) return res.status(404).json({ message: 'Informe um nome para seu workspace.' });
 
       const update = await Workspace.update(workspace.id, {
         picture,
@@ -56,65 +90,16 @@ class WorkspaceController {
       return res.status(404).json({ message: 'Algo deu errado, tente novamente.' });
     }
   }
-  public async updateOpenaiApiKey(req: Request, res: Response): Promise<any> {
-    const id = req.params.id;
-    try {
-      const { apiKey } = req.body;
 
-      if (!id || !apiKey) return res.status(400).json({ message: 'Please send a workspace id' });
-
-      const openai = new OpenAI({ apiKey: apiKey });
-      const actionAssistant = await openai.beta.assistants.create({
-        name: 'Verify',
-        description: null,
-        model: 'gpt-4o-mini',
-        temperature: 0.5,
-        top_p: 1,
-        metadata: {},
-        response_format: 'auto',
-      });
-
-      if (!actionAssistant.id) return res.status(400).json({ message: 'Inválid API Key' });
-
-      const hashApiKey = await encrypt(apiKey! as string);
-
-      if (!hashApiKey) return res.status(404).json({ message: 'Cannot find workspace' });
-
-      const workspace = await Workspace.update(id, {
-        openaiApiKey: hashApiKey,
-      });
-
-      if (!workspace) return res.status(404).json({ message: 'Cannot find workspace' });
-
-      await openai.beta.assistants.del(actionAssistant.id);
-
-      return res.status(200).json({});
-    } catch (error) {
-      console.error(error);
-      return res.status(404).json({ error: 'Conection failed, try again' });
-    }
-  }
-
-  public async delete(req: Request, res: Response): Promise<Response> {
-    try {
-      const id = req.params.id;
-
-      if (!id) return res.status(400).json({ message: 'Please send a workspace id' });
-
-      const workspace = await Workspace.findOne(id);
-
-      if (!workspace) return res.status(404).json({ message: 'Cannot find workspace' });
-
-      await Workspace.softRemove(workspace);
-
-      return res.status(200).json({ message: 'Workspace deleted successfully' });
-    } catch (error) {
-      return res.status(400).json({ error: 'Remove failed, try again' });
-    }
-  }
   public async generateCreditCardToken(req: Request, res: Response): Promise<Response> {
     try {
       const { cardNumber, expiryMonth, expiryYear, cvv, holderName } = req.body;
+
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado.' });
 
       // Adicione a validação necessária para os dados do cartão aqui
 
@@ -132,6 +117,10 @@ class WorkspaceController {
           headers: { 'Access-Token': process.env.ASAAS_API_KEY },
         }
       );
+
+      const creditCard = await CreditCard.create({
+        workspace,
+      });
 
       return res.status(200).json(tokenResponse.data);
     } catch (error) {

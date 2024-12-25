@@ -42,8 +42,11 @@ class Workspace extends BaseEntity {
   @Column({ nullable: true })
   picture!: string;
 
-  @Column({ nullable: true })
-  subscriptionAsaasId!: string;
+  @Column()
+  subscriptionId!: string;
+
+  @Column()
+  customerId!: string;
 
   @Column()
   color!: string;

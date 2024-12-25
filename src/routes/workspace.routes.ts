@@ -3,8 +3,9 @@ import WorkspaceController from '@controllers/WorkspaceController';
 
 const routes = Router();
 routes.get('/', WorkspaceController.findWorkspace);
-routes.put('/', WorkspaceController.updateWorkspace);
-routes.delete('/:id', WorkspaceController.delete);
+routes.put('/:workspaceId', WorkspaceController.updateWorkspace);
+routes.get('/invoices/', WorkspaceController.listInvoices);
+routes.post('/method/', WorkspaceController.generateCreditCardToken);
 
 export default routes;
 

@@ -1,12 +1,5 @@
 import User from '@entities/User';
-import {
-  assistants,
-  pipelines,
-  plans,
-  products,
-  users,
-  vectors,
-} from './dataMock';
+import { assistants, pipelines, plans, products, users, vectors } from './dataMock';
 import fs from 'fs';
 import bcrypt from 'bcryptjs';
 import Workspace from '@entities/Workspace';
@@ -18,7 +11,7 @@ import Access from '@entities/Access';
 import { encrypt } from './encrypt/encrypt';
 import Vector from '@entities/Vector';
 
-import dotenv from 'dotenv'
+import dotenv from 'dotenv';
 dotenv.config();
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -70,7 +63,7 @@ const mocks = async (): Promise<void> => {
     const workspace = await Workspace.create({
       name: 'Softspace BR',
       picture: 'https://wave.softspace.com.br/logo-a.svg',
-      subscriptionAsaasId: 'Hello World',
+      subscriptionId: 'Hello World',
       plan,
       color,
     }).save();
@@ -102,7 +95,6 @@ const mocks = async (): Promise<void> => {
       role: 'SUPPORT',
       workspace: workspace,
     }).save();
-
   } catch (error) {
     console.log('Erro ao rodar mocks!', error);
   }

@@ -7,6 +7,7 @@ const routes = Router();
 
 routes.get('/', UserController.findUsers);
 routes.post('/invite', UserController.inviteWorkspace);
+routes.post('/invite', UserController.inviteWorkspace);
 
 
 
@@ -15,9 +16,12 @@ routes.get('/access/:id', ensureAuthenticated, UserController.findAccessById);
 routes.get('/:id', ensureAuthenticated, UserController.findUserById);
 routes.put('/access/:id', ensureAuthenticated, UserController.update);
 routes.put('/:id', ensureAuthenticated, UserController.updateUser);
+
+
+
 routes.put('/picture/:id/:userId', ensureAuthenticated, UserController.updatePicture);
 routes.get('/permissions/:id/:workspaceId', UserController.getPermission);
-routes.get('/notify/:id/:workspaceId', UserController.getNotifications);
+// routes.get('/notify/:id/:workspaceId', UserController.getNotifications);
 routes.post('/:id', UserController.create);
 routes.delete('/access/:id', ensureAuthenticated, UserController.removeAccess);
 routes.put('/update-password/:id', ensureAuthenticated, ensureProfile, UserController.passwordUpdate);

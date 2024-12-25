@@ -47,9 +47,12 @@ export class createWorkspace1631039612323 implements MigrationInterface {
             default: false,
           },
           {
-            name: 'subscriptionAsaasId',
+            name: 'subscriptionId',
             type: 'varchar',
-            isNullable: true,
+          },
+          {
+            name: 'customerId',
+            type: 'varchar',
           },
           {
             name: 'name',

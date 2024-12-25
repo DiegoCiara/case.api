@@ -17,9 +17,11 @@ import { In } from 'typeorm';
 import { s3 } from '@utils/s3';
 import { log } from '@utils/functions/createLog';
 import { io, ioSocket } from '@src/socket';
+import { listInvoices } from '@utils/stripe/invoices/listInvoices';
+import { createCustomer } from '@utils/stripe/customer/createCustomer';
 
 interface UserInterface {
-  name?: string;
+  name: string;
   role?: string;
   token?: string;
   picture?: string;
@@ -101,74 +103,72 @@ class UserController {
     }
   }
 
-  public async getNotifications(req: Request, res: Response): Promise<Response> {
-    try {
-      const { id, workspaceId } = req.params;
-      if (!id || !workspaceId) return res.status(400).json({ message: 'Invalid values for User' });
+  // public async getNotifications(req: Request, res: Response): Promise<Response> {
+  //   try {
+  //     const { id, workspaceId } = req.params;
+  //     if (!id || !workspaceId) return res.status(400).json({ message: 'Invalid values for User' });
 
-      const user = await User.findOne(id, {
-        select: ['id', 'email', 'name', 'passwordResetToken', 'passwordHash', 'picture'],
-      });
+  //     const user = await User.findOne(id, {
+  //       select: ['id', 'email', 'name', 'passwordResetToken', 'passwordHash', 'picture'],
+  //     });
 
-      const workspace = await Workspace.findOne(workspaceId);
+  //     const workspace = await Workspace.findOne(workspaceId);
 
-      const access = await Access.findOne({ where: { user, workspace } });
+  //     const access = await Access.findOne({ where: { user, workspace } });
 
-      if (!access) return res.status(404).json({ error: 'Authenticate failed, try again' });
+  //     if (!access) return res.status(404).json({ error: 'Authenticate failed, try again' });
 
-      if (access.role === 'SELLER') {
-        const notifications = await Notification.find({ where: { user, workspace, role: access.role } });
-        for (const notification of notifications) {
-          if (!notification.viewed) {
-            await Notification.update(notification.id, { viewed: !notification.viewed });
-          }
-        }
-        await eventEmitter.emit('notify', user?.id, workspace!.id);
+  //     if (access.role === 'SELLER') {
+  //       const notifications = await Notification.find({ where: { user, workspace, role: access.role } });
+  //       for (const notification of notifications) {
+  //         if (!notification.viewed) {
+  //           await Notification.update(notification.id, { viewed: !notification.viewed });
+  //         }
+  //       }
+  //       await eventEmitter.emit('notify', user?.id, workspace!.id);
 
-        return res.status(200).json({ notifications: notifications.reverse() });
-      } else {
-        const notifications = await Notification.find({ where: { user, workspace } });
-        for (const notification of notifications) {
-          if (!notification.viewed) {
-            await Notification.update(notification.id, { viewed: !notification.viewed });
-          }
-        }
-        await eventEmitter.emit('notify', user?.id, workspace!.id);
+  //       return res.status(200).json({ notifications: notifications.reverse() });
+  //     } else {
+  //       const notifications = await Notification.find({ where: { user, workspace } });
+  //       for (const notification of notifications) {
+  //         if (!notification.viewed) {
+  //           await Notification.update(notification.id, { viewed: !notification.viewed });
+  //         }
+  //       }
+  //       await eventEmitter.emit('notify', user?.id, workspace!.id);
 
-        await log('users', req, 'getNotifications', 'success', JSON.stringify({ id: id }), id);
-        return res.status(200).json({ notifications: notifications.reverse() });
-      }
-    } catch (error) {
-      return res.status(400).json({ error: 'Authenticate failed, try again' });
-    }
-  }
+  //       await log('users', req, 'getNotifications', 'success', JSON.stringify({ id: id }), id);
+  //       return res.status(200).json({ notifications: notifications.reverse() });
+  //     }
+  //   } catch (error) {
+  //     return res.status(400).json({ error: 'Authenticate failed, try again' });
+  //   }
+  // }
 
-  public async findUsersOfWorkspace(req: Request, res: Response): Promise<Response> {
-    try {
-      const id = req.params.id;
+  // public async findUsersOfWorkspace(req: Request, res: Response): Promise<Response> {
+  //   try {
+  //     const id = req.params.id;
 
-      const workspace = await Workspace.findOne(id);
+  //     const workspace = await Workspace.findOne(id);
 
-      const access = await Access.find({ where: { workspace: workspace } });
+  //     const access = await Access.find({ where: { workspace: workspace } });
 
-      const users = await Users.find(queryBuilder(req.query));
+  //     const users = await Users.find(queryBuilder(req.query));
 
-      users.map((user: { passwordHash: undefined }) => (user.passwordHash = undefined));
+  //     users.map((user: { passwordHash: undefined }) => (user.passwordHash = undefined));
 
-      await log('users', req, 'findUsersOfWorkspace', 'success', JSON.stringify({ id: id }), id);
-      return res.status(200).json(users);
-    } catch (error) {
-      await log('users', req, 'findUsersOfWorkspace', 'failed', JSON.stringify(error), null);
-      return res.status(400).json({ error: 'Find users failed, try again' });
-    }
-  }
+  //     await log('users', req, 'findUsersOfWorkspace', 'success', JSON.stringify({ id: id }), id);
+  //     return res.status(200).json(users);
+  //   } catch (error) {
+  //     await log('users', req, 'findUsersOfWorkspace', 'failed', JSON.stringify(error), null);
+  //     return res.status(400).json({ error: 'Find users failed, try again' });
+  //   }
+  // }
 
   public async findUserById(req: Request, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
 
-      console.log('FIND USER BAI AIDI', id)
-      
       const user = await Users.findOne(id);
 
       if (!user) return res.status(404).json({ message: 'Users not exist' });
@@ -216,7 +216,7 @@ class UserController {
 
   public async create(req: Request, res: Response): Promise<Response> {
     try {
-      const { email }: UserInterface = req.body;
+      const { name, email }: UserInterface = req.body;
 
       const workspaceId = req.header('workspaceId');
 
@@ -247,6 +247,10 @@ class UserController {
       const now = new Date();
       now.setHours(now.getHours() + 1);
       // const passwordHash = "password";
+
+      const customer = await createCustomer({ name, email });
+
+      const { data }: any = customer;
 
       const user = await Users.create({
         name: email,
@@ -423,6 +427,7 @@ class UserController {
       return res.status(500).json({ message: 'Falha ao atualizar, tente novamente.' });
     }
   }
+
   public async updatePicture(req: Request, res: Response): Promise<Response> {
     try {
       const { id, userId } = req.params;

@@ -7,13 +7,11 @@ dotenv.config();
 
 const devEnviroment = process.env.ENVIROMENT === 'DEV';
 
-// const api = devEnviroment ? 'https://sandbox.asaas.com/api/v3' : 'https://api.asaas.com/';
 const api = 'https://sandbox.asaas.com/api/v3';
 
 const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
 
 export async function createAsaasClient(name: string, cpfCnpj: string, phone: string, email: string, company: string, cep: string) {
-  // https://docs.asaas.com/reference/criar-novo-cliente
 
   try {
     // const customer = await Softspacer.findOne(customerId);
@@ -54,7 +52,6 @@ export async function createAsaasClient(name: string, cpfCnpj: string, phone: st
 
 
 export async function updateAsaasClient(id: string, name: string, cpfCnpj: string, phone: string) {
-  // https://docs.asaas.com/reference/criar-novo-cliente
 
   try {
     // const customer = await Softspacer.findOne(customerId);
@@ -90,7 +87,6 @@ export async function updateAsaasClient(id: string, name: string, cpfCnpj: strin
 }
 
 export async function updateAsaasSoftspaceId(id: string, softspacerId: string) {
-  // https://docs.asaas.com/reference/criar-novo-cliente
 
   try {
     // const customer = await Softspacer.findOne(customerId);
@@ -122,7 +118,7 @@ export async function updateAsaasSoftspaceId(id: string, softspacerId: string) {
 }
 
 export async function createAsaasSubscription(asaasCustomerId: string, body: object, workspaceId: string) {
-  // https://docs.asaas.com/reference/criar-assinatura-com-cartao-de-credito\
+
   const { workspace, email, creditCard, billingType, plan }: any = body;
 
   const { holderName, cpfCnpj, phone, postalCode, addressNumber, address, number, expiryMonth, expiryYear, ccv, ip } = creditCard;
@@ -233,7 +229,6 @@ export async function createAsaasSubscription(asaasCustomerId: string, body: obj
 }
 
 export async function createAsaasSubscriptionPix(asaasCustomerId: string, plan: Plan) {
-  // https://docs.asaas.com/reference/criar-assinatura-com-cartao-de-credito\
 
   const date = new Date().toISOString().split('T')[0]; // Obtém a data no formato AAAA-MM-DD
   try {
@@ -271,7 +266,6 @@ export async function createAsaasSubscriptionPix(asaasCustomerId: string, plan: 
 
 
 export async function updateAsaasSubscriptionId(id: string, workspaceId: string) {
-  // https://docs.asaas.com/reference/criar-novo-cliente
 
   try {
     // const customer = await Softspacer.findOne(customerId);

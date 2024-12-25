@@ -49,3 +49,39 @@ Matando os processos das portas:
 
 Nunca mexer nas branches Dev e Main diretamente, pois isso atrapalha o fluxo
 Sempre desenvolver na brach development e abrir pull requests para Dev e após os testes serem bem sucedidos, para main.
+
+
+
+## Integração Stripe
+
+### Clientes
+Quando criamos um cliente, o objeto retornado será algo como:
+`{
+    "id": "cus_RSvKOt1U0VUBCa",
+    "object": "customer",
+    "address": null,
+    "balance": 0,
+    "created": 1735151907,
+    "currency": null,
+    "default_source": null,
+    "delinquent": false,
+    "description": "test customer",
+    "discount": null,
+    "email": null,
+    "invoice_prefix": "62E2CE2C",
+    "invoice_settings": {
+        "custom_fields": null,
+        "default_payment_method": null,
+        "footer": null,
+        "rendering_options": null
+    },
+    "livemode": false,
+    "metadata": {},
+    "name": null,
+    "next_invoice_sequence": 1,
+    "phone": null,
+    "preferred_locales": [],
+    "shipping": null,
+    "tax_exempt": "none",
+    "test_clock": null
+}`
