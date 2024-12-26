@@ -31,7 +31,7 @@ export const createPaymentMethod = async (customerId: string) => {
 export const createPaymentIntent = async () => {
   try {
 
-    const intent = await stripe.paymentIntents.create({ amount: 1000, currency: 'brl'});
+    const intent = await stripe.paymentIntents.create({ amount: 50, currency: 'brl'});
 
     console.log(intent);
 
