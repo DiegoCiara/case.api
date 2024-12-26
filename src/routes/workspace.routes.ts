@@ -4,7 +4,7 @@ import WorkspaceController from '@controllers/WorkspaceController';
 const routes = Router();
 routes.get('/', WorkspaceController.findWorkspace);
 routes.put('/', WorkspaceController.updateWorkspace);
-routes.get('/plans/', WorkspaceController.findSubscription);
+routes.get('/plans/', WorkspaceController.listPlans);
 routes.get('/subscription/', WorkspaceController.findSubscription);
 routes.get('/invoices/', WorkspaceController.listInvoices);
 routes.delete('/payment-methods/:id', WorkspaceController.deletePaymentMethod);

@@ -5,21 +5,11 @@ dotenv.config();
 
 const stripe = new Stripe(`${process.env.STRIPE_KEY}`);
 
-interface CustomerStripe {
-  name: string;
-  email: string;
-  description?: string;
-}
-
-export const createSubscription = async (customerId: string, priceId: string) => {
+export const createSubscription = async (customerId: string, priceId: string, paymentMethodId:string) => {
   try {
-    // const params: Stripe.Invoi = {
-    //   ...data,
-    // };
-
     const invoices = await stripe.subscriptions.create({
       customer: customerId,
-
+      default_payment_method: paymentMethodId,
       add_invoice_items: [
         {
           price: priceId,
