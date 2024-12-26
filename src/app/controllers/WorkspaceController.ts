@@ -97,7 +97,7 @@ class WorkspaceController {
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
-      const intent = await createPaymentIntent();
+      const intent = await createPaymentIntent(workspace.customerId);
       console.log(intent)
       return res.status(200).json(intent);
     } catch (error) {

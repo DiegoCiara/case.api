@@ -5,20 +5,13 @@ dotenv.config();
 
 const stripe = new Stripe(`${process.env.STRIPE_KEY}`);
 
-interface CustomerStripe {
-  name: string;
-  email: string;
-  description?: string;
-}
 
 export const listPaymentMethods = async (customerId: string) => {
   try {
-    
-    const invoices = await stripe.paymentMethods.list({ customer: customerId});
 
-    console.log(invoices);
+    const methods = await stripe.paymentMethods.list({ customer: customerId});
 
-    return invoices;
+    return methods;
   } catch (error) {
     console.error(error)
     return

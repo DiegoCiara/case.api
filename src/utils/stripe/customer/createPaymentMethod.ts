@@ -18,8 +18,6 @@ export const createPaymentMethod = async (customerId: string) => {
 
     }});
 
-    console.log(invoices);
-
     return invoices;
   } catch (error) {
     console.error(error)
@@ -28,10 +26,10 @@ export const createPaymentMethod = async (customerId: string) => {
 };
 
 
-export const createPaymentIntent = async () => {
+export const createPaymentIntent = async (customerId: string) => {
   try {
 
-    const intent = await stripe.paymentIntents.create({ amount: 50, currency: 'brl'});
+    const intent = await stripe.setupIntents.create({ customer: customerId, payment_method_types: ['card']});
 
     console.log(intent);
 
