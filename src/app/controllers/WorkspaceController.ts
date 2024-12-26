@@ -10,19 +10,53 @@ import CreditCard from '@entities/CreditCard';
 import { createCustomer } from '@utils/stripe/customer/createCustomer';
 import { listInvoices } from '@utils/stripe/invoices/listInvoices';
 import { listPaymentMethods } from '@utils/stripe/customer/listPaymentMethods';
-import { createPaymentIntent } from '@utils/stripe/customer/createPaymentMethod';
+import { createPaymentIntent, setPaymentMethodAsDefault } from '@utils/stripe/customer/createPaymentMethod';
+import { deleteMethod } from '@utils/stripe/customer/deletePaymentMethod';
+import { listSubscription } from '@utils/stripe/subscriptions/listSubscription';
+import currency from 'currency.js';
 
 class WorkspaceController {
   public async findWorkspace(req: Request, res: Response): Promise<Response> {
     try {
       const workspaceId = req.header('workspaceId');
 
-      console.log('oims');
       const workspace = await Workspace.findOne(workspaceId, { relations: ['plan', 'creditCards'] });
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
-      return res.status(200).json(workspace);
+      const subscription = await listSubscription(workspace.subscriptionId);
+
+      return res.status(200).json({...workspace, subscription});
+    } catch (error) {
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+  public async findSubscription(req: Request, res: Response): Promise<Response> {
+    try {
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId, { relations: ['plan', 'creditCards'] });
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const subscription = await listSubscription(workspace.subscriptionId);
+
+      return res.status(200).json( subscription);
+    } catch (error) {
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+  public async listPlans(req: Request, res: Response): Promise<Response> {
+    try {
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId, { relations: ['plan', 'creditCards'] });
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const subscription = await listSubscription(workspace.subscriptionId);
+
+      return res.status(200).json( subscription);
     } catch (error) {
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });
     }
@@ -32,7 +66,6 @@ class WorkspaceController {
     try {
       const workspaceId = req.header('workspaceId');
 
-      console.log('oims');
       const workspace = await Workspace.findOne(workspaceId);
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
@@ -41,7 +74,20 @@ class WorkspaceController {
 
       const { data }: any = customer;
 
-      return res.status(200).json(data);
+      const invoices = data.map((e: any) => {
+        const moeda = (e.currency)
+        return {
+          number: e.number,
+          customer_email: e.customer_email,
+          moeda: moeda.toString().toUpperCase(),
+          status: e.status,
+          amount_paid: e.amount_paid,
+          created: e.created,
+
+        }
+      })
+      console.log(invoices)
+      return res.status(200).json(invoices);
     } catch (error) {
       console.log(error);
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });
@@ -52,7 +98,6 @@ class WorkspaceController {
     try {
       const workspaceId = req.header('workspaceId');
 
-      console.log('oims');
       const workspace = await Workspace.findOne(workspaceId);
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
@@ -68,16 +113,52 @@ class WorkspaceController {
     }
   }
 
+  public async deletePaymentMethod(req: Request, res: Response): Promise<Response> {
+    try {
+
+      const { id } = req.params
+
+      if(!id) return res.status(400).json({ message: 'Id not provided' });
+
+      const customer = await deleteMethod(id);
+
+      return res.status(200).json(customer);
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
   public async createPaymentMethod(req: Request, res: Response): Promise<Response> {
     try {
       const workspaceId = req.header('workspaceId');
-
-      console.log('oims');
       const workspace = await Workspace.findOne(workspaceId);
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
       const customer = await listPaymentMethods(workspace.customerId);
+
+      const { data }: any = customer;
+
+      return res.status(200).json(data);
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+
+  public async setPaymentAsDefault(req: Request, res: Response): Promise<Response> {
+    try {
+      const workspaceId = req.header('workspaceId');
+
+      const { payment_method } = req.body;
+
+      console.log('SET PAUYMENRT AS DEFAAAAAAULLLLLLLLT ================================>', req.body.id)
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const customer = await setPaymentMethodAsDefault(workspace.customerId, payment_method);
 
       const { data }: any = customer;
 
@@ -92,7 +173,6 @@ class WorkspaceController {
     try {
       const workspaceId = req.header('workspaceId');
 
-      console.log('oims');
       const workspace = await Workspace.findOne(workspaceId);
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
@@ -100,26 +180,6 @@ class WorkspaceController {
       const intent = await createPaymentIntent(workspace.customerId);
       console.log(intent)
       return res.status(200).json(intent);
-    } catch (error) {
-      console.log(error);
-      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
-    }
-  }
-
-  public async deletePaymentMethod(req: Request, res: Response): Promise<Response> {
-    try {
-      const workspaceId = req.header('workspaceId');
-
-      console.log('oims');
-      const workspace = await Workspace.findOne(workspaceId);
-
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
-
-      const customer = await listPaymentMethods(workspace.customerId);
-
-      const { data }: any = customer;
-
-      return res.status(200).json(data);
     } catch (error) {
       console.log(error);
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });
@@ -134,13 +194,14 @@ class WorkspaceController {
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado.' });
 
-      const { name, color, picture } = req.body;
+      const { name, color, picture, subscriptionId } = req.body;
 
       if (!name) return res.status(404).json({ message: 'Informe um nome para seu workspace.' });
 
       const update = await Workspace.update(workspace.id, {
         picture,
         name,
+        subscriptionId,
         color,
       });
 

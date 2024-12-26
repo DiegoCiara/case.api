@@ -11,22 +11,28 @@ interface CustomerStripe {
   description?: string;
 }
 
-export const createSubscription = async () => {
+export const createSubscription = async (customerId: string, priceId: string) => {
   try {
     // const params: Stripe.Invoi = {
     //   ...data,
     // };
 
     const invoices = await stripe.subscriptions.create({
-      customer: '',
+      customer: customerId,
+
+      add_invoice_items: [
+        {
+          price: priceId,
+        },
+      ],
     });
 
     console.log(invoices);
 
     return invoices;
   } catch (error) {
-    console.error(error)
-    return
+    console.error(error);
+    return;
   }
 };
 

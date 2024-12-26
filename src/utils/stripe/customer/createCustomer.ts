@@ -19,8 +19,6 @@ export const createCustomer = async (data: CustomerStripe) => {
 
     const customer: Stripe.Customer = await stripe.customers.create(params);
 
-    console.log(customer.id);
-    
     return customer;
   } catch (error) {
     console.error(error)

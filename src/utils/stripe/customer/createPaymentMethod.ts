@@ -11,14 +11,17 @@ interface CustomerStripe {
   description?: string;
 }
 
-export const createPaymentMethod = async (customerId: string) => {
+export const setPaymentMethodAsDefault = async (customerId: string, paymentMethodId: string) => {
+
+  console.log(customerId, paymentMethodId)
   try {
+    const method = await stripe.customers.update(customerId, {
+      invoice_settings: {
+        default_payment_method: paymentMethodId,
+      },
+    });
 
-    const invoices = await stripe.paymentMethods.create({ customer: customerId, card: {
-
-    }});
-
-    return invoices;
+    return method;
   } catch (error) {
     console.error(error)
     return
@@ -30,8 +33,6 @@ export const createPaymentIntent = async (customerId: string) => {
   try {
 
     const intent = await stripe.setupIntents.create({ customer: customerId, payment_method_types: ['card']});
-
-    console.log(intent);
 
     return intent;
   } catch (error) {
