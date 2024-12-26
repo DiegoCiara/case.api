@@ -63,7 +63,8 @@ const mocks = async (): Promise<void> => {
     const workspace = await Workspace.create({
       name: 'Softspace BR',
       picture: 'https://wave.softspace.com.br/logo-a.svg',
-      subscriptionId: 'Hello World',
+      subscriptionId: 'sub_1Qa3RJCEMWzJZjFdw1bxphVv',
+      customerId: 'cus_RSvfRoGaPZ926O',
       plan,
       color,
     }).save();

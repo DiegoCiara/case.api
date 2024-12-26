@@ -9,6 +9,8 @@ import OpenAI from 'openai';
 import CreditCard from '@entities/CreditCard';
 import { createCustomer } from '@utils/stripe/customer/createCustomer';
 import { listInvoices } from '@utils/stripe/invoices/listInvoices';
+import { listPaymentMethods } from '@utils/stripe/customer/listPaymentMethods';
+import { createPaymentIntent } from '@utils/stripe/customer/createPaymentMethod';
 
 class WorkspaceController {
   public async findWorkspace(req: Request, res: Response): Promise<Response> {
@@ -55,7 +57,65 @@ class WorkspaceController {
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
-      const customer = await listInvoices(workspace.subscriptionId);
+      const customer = await listPaymentMethods(workspace.customerId);
+
+      const { data }: any = customer;
+
+      return res.status(200).json(data);
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+
+  public async createPaymentMethod(req: Request, res: Response): Promise<Response> {
+    try {
+      const workspaceId = req.header('workspaceId');
+
+      console.log('oims');
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const customer = await listPaymentMethods(workspace.customerId);
+
+      const { data }: any = customer;
+
+      return res.status(200).json(data);
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+
+  public async createPaymentIntent(req: Request, res: Response): Promise<Response> {
+    try {
+      const workspaceId = req.header('workspaceId');
+
+      console.log('oims');
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const intent = await createPaymentIntent();
+      console.log(intent)
+      return res.status(200).json(intent);
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+
+  public async deletePaymentMethod(req: Request, res: Response): Promise<Response> {
+    try {
+      const workspaceId = req.header('workspaceId');
+
+      console.log('oims');
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const customer = await listPaymentMethods(workspace.customerId);
 
       const { data }: any = customer;
 
