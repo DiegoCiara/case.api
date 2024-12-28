@@ -11,6 +11,7 @@ import Vector from '@entities/Vector';
 
 import dotenv from 'dotenv';
 import { createCustomer } from './stripe/customer/createCustomer';
+import { FunctionTool } from 'openai/resources/beta/assistants';
 dotenv.config();
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -52,9 +53,33 @@ const mocks = async (): Promise<void> => {
       return
     }
 
+    const tools: any = [
+      { type: 'file_search' },
+    ];
+
+    const openaiVector = await openai.beta.vectorStores.create({
+      name: 'Base de conhecimento',
+    });
+
+    const assistant = await openai.beta.assistants.create({
+      name: 'Edite',
+      instructions: '',
+      description: null,
+      temperature: 0.5,
+      model: 'gpt-4o-mini',
+      tools,
+      tool_resources: {
+        file_search: { vector_store_ids: [openaiVector.id] },
+      },
+      top_p: 1,
+      metadata: {},
+      response_format: 'auto',
+    });
+
     const workspace = await Workspace.create({
       name: 'Endurance Tecnologia',
       subscriptionId: 'sub_1Qa3RJCEMWzJZjFdw1bxphVv',
+      assistantId: assistant.id,
       customerId: customer.id,
       logo: 'https://endurancetecnologia.com.br/logo-dark.svg',
       logoDark: 'https://endurancetecnologia.com.br/logo.svg',
@@ -62,23 +87,6 @@ const mocks = async (): Promise<void> => {
       backgroundColorDark: generateColor(),
     }).save();
     console.log(`Assistente ${workspace.name} criado`);
-
-    const vectorStore = [];
-
-    const openaiStore = [];
-
-    const openaiVector = await openai.beta.vectorStores.create({
-      name: 'Base de conhecimento',
-    });
-
-    openaiStore.push(openaiVector.id);
-
-    const vectorCreated = await Vector.create({
-      name: 'Base de conhecimento',
-      vectorId: openaiVector.id,
-      workspace,
-    }).save();
-    vectorStore.push(vectorCreated);
 
     await Access.create({
       user: newUser,
