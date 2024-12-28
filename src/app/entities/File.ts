@@ -14,7 +14,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import Workspace from './Workspace';
-import Assistant from './Assistant';
 import Vector from './Vector';
 
 @Entity({ name: 'files' })

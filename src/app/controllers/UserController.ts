@@ -10,14 +10,10 @@ import crypto from 'crypto';
 import Workspace from '@entities/Workspace';
 import Access from '@entities/Access';
 import User from '@entities/User';
-import Notification from '@entities/Notification';
-import eventEmitter from '@utils/emitter';
-import { notify } from '@utils/functions/createNotifications';
-import { In } from 'typeorm';
+import eventEmitter from '@utils/emitter'
 import { s3 } from '@utils/s3';
 import { log } from '@utils/functions/createLog';
 import { io, ioSocket } from '@src/socket';
-import { listInvoices } from '@utils/stripe/invoices/listInvoices';
 import { createCustomer } from '@utils/stripe/customer/createCustomer';
 
 interface UserInterface {

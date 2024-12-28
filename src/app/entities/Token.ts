@@ -13,7 +13,6 @@ import {
 import User from './User';
 import Workspace from './Workspace';
 import Thread from './Thread';
-import Assistant from './Assistant';
 
 @Entity({ name: 'tokens' })
 class Token extends BaseEntity {
@@ -23,10 +22,6 @@ class Token extends BaseEntity {
   @ManyToOne(() => Workspace, (user) => user.tokens)
   @JoinColumn([{ name: 'workspace', referencedColumnName: 'id' }])
   workspace!: Workspace;
-
-  @ManyToOne(() => Assistant, (user) => user.tokens)
-  @JoinColumn([{ name: 'assistant', referencedColumnName: 'id' }])
-  assistant!: Assistant;
 
   @ManyToOne(() => Thread, (user) => user.tokens)
   @JoinColumn([{ name: 'thread', referencedColumnName: 'id' }])
@@ -41,10 +36,10 @@ class Token extends BaseEntity {
   @Column()
   prompt_tokens!: number;
 
-  @Column({ nullable: true })
+  @Column({ type: 'jsonb' })
   output!: string;
 
-  @Column({ nullable: true, type: 'jsonb' })
+  @Column({ type: 'jsonb' })
   input!: string;
 
   @Column()

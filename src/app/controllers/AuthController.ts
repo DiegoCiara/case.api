@@ -49,7 +49,6 @@ class AuthController {
           const workspace = access.workspace;
           return {
             id: workspace.id,
-            color: workspace.color,
             role: access.role,
           };
         })

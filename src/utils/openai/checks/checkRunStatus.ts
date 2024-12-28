@@ -2,7 +2,6 @@ import Thread from '@entities/Thread';
 import Workspace from '@entities/Workspace';
 import OpenAI from 'openai';
 import Log from '@entities/Log';
-import Assistant from '@entities/Assistant';
 
 // Função para verificar se existe um run ativo
 export async function getActiveRun(openai: OpenAI, threadId: string) {
@@ -14,19 +13,19 @@ export async function getActiveRun(openai: OpenAI, threadId: string) {
   }
 }
 
-export async function checkRun(openai: OpenAI, thread: Thread, runId: string, workspace: Workspace, assistant: Assistant): Promise<any> {
+export async function checkRun(openai: OpenAI, threadId: string, runId: string): Promise<any> {
   return await new Promise((resolve, reject) => {
     let timeoutId: any;
 
     const verify = async (): Promise<void> => {
-      const runStatus = await openai.beta.threads.runs.retrieve(thread.threadId, runId);
+      const runStatus = await openai.beta.threads.runs.retrieve(threadId, runId);
       console.log(runStatus.required_action);
       console.log(runStatus.required_action?.submit_tool_outputs)
       console.log(runStatus.required_action?.submit_tool_outputs.tool_calls)
       console.log('---------------------------------------------------------------------')
       if (runStatus.status === 'completed') {
         clearTimeout(timeoutId); // Limpa o timeout se o status for 'completed'
-        const messages = await openai.beta.threads.messages.list(thread.threadId);
+        const messages = await openai.beta.threads.messages.list(threadId);
         resolve(messages);
       } else if (runStatus.status === 'failed') {
         resolve(null);
@@ -45,7 +44,7 @@ export async function checkRun(openai: OpenAI, thread: Thread, runId: string, wo
 
           if (toolOutputs.length > 0) {
             console.log('toolOutputs', toolOutputs);
-            const run = await openai.beta.threads.runs.submitToolOutputsAndPoll(thread.threadId, runStatus.id, {
+            const run = await openai.beta.threads.runs.submitToolOutputsAndPoll(threadId, runStatus.id, {
               tool_outputs: toolOutputs as any[],
             });
             console.log('Tool outputs submitted successfully.');

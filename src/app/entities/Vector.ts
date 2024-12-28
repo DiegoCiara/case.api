@@ -14,7 +14,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import Workspace from './Workspace';
-import Assistant from './Assistant';
 import File from './File';
 
 
@@ -35,9 +34,6 @@ class Vector extends BaseEntity {
 
   @OneToMany(() => File, (token) => token.vector)
   files!: File[];
-
-  @OneToMany(() => Assistant, (token) => token.vector)
-  assistants!: Assistant[];
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -14,40 +14,16 @@ export class createWorkspace1631039612323 implements MigrationInterface {
             generationStrategy: 'uuid',
           },
           {
-            name: 'companyType',
-            type: 'varchar',
-          },
-          {
-            name: 'pageLabels',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'plan',
-            type: 'uuid',
-          },
-          {
             name: 'openaiApiKey',
             type: 'varchar',
             isNullable: true,
           },
           {
-            name: 'wppDelayResponse',
-            type: 'int',
-            default: 20, // 3 segundos
-          },
-          {
-            name: 's3',
-            type: 'int',
-            default: 100, // 3 segundos
-          },
-          {
-            name: 'wppEnabled',
-            type: 'boolean',
-            default: false,
-          },
-          {
             name: 'subscriptionId',
+            type: 'varchar',
+          },
+          {
+            name: 'assistantId',
             type: 'varchar',
           },
           {
@@ -59,27 +35,20 @@ export class createWorkspace1631039612323 implements MigrationInterface {
             type: 'varchar',
           },
           {
-            name: 'apiKey',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'color',
+            name: 'backgroundColor',
             type: 'varchar',
           },
           {
-            name: 'picture',
+            name: 'logo',
             type: 'varchar',
-            isNullable: true,
           },
-          // {
-          //   name: 'role',
-          //   type: 'varchar',
-          // },
           {
-            name: 'wppToken',
+            name: 'backgroundColorDark',
             type: 'varchar',
-            isNullable: true,
+          },
+          {
+            name: 'logoDark',
+            type: 'varchar',
           },
           {
             name: 'createdAt',
@@ -97,14 +66,6 @@ export class createWorkspace1631039612323 implements MigrationInterface {
             isNullable: true,
           },
         ],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'workspaces',
-      new TableForeignKey({
-        columnNames: ['plan'],
-        referencedTableName: 'plans',
-        referencedColumnNames: ['id'],
       })
     );
   }

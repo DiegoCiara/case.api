@@ -14,7 +14,6 @@ import {
 } from 'typeorm';
 import Workspace from './Workspace';
 import Thread from './Thread';
-import Assistant from './Assistant';
 
 @Entity({ name: 'whispers' })
 class Whisper extends BaseEntity {
@@ -24,10 +23,6 @@ class Whisper extends BaseEntity {
   @ManyToOne(() => Workspace, (user) => user.whispers)
   @JoinColumn([{ name: 'workspace', referencedColumnName: 'id' }])
   workspace!: Workspace;
-
-  @ManyToOne(() => Assistant, (user) => user.whispers)
-  @JoinColumn([{ name: 'assistant', referencedColumnName: 'id' }])
-  assistant!: Assistant;
 
   @ManyToOne(() => Thread, (user) => user.whispers)
   @JoinColumn([{ name: 'thread', referencedColumnName: 'id' }])

@@ -1,17 +1,16 @@
 import User from '@entities/User';
-import { assistants, pipelines, plans, products, users, vectors } from './dataMock';
+import { vectors } from './dataMock';
 import fs from 'fs';
 import bcrypt from 'bcryptjs';
 import Workspace from '@entities/Workspace';
 import OpenAI from 'openai';
 import { generateColor } from './functions/generateColor';
-import Plan from '@entities/Plan';
-import Pipeline from '@entities/Pipeline';
 import Access from '@entities/Access';
 import { encrypt } from './encrypt/encrypt';
 import Vector from '@entities/Vector';
 
 import dotenv from 'dotenv';
+import { createCustomer } from './stripe/customer/createCustomer';
 dotenv.config();
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -32,19 +31,9 @@ const mocks = async (): Promise<void> => {
       return;
     }
 
-    for (const plan of plans) {
-      const newPlan = await Plan.create({ ...plan }).save();
-      console.log(`Plano ${newPlan.name}`);
-    }
-
-    const dealParams = {
-      status: ['INPROGRESS', 'ARCHIVED', 'PENDING'],
-      // includeAssistantDeals: true,
-    };
-
     const user = {
-      name: 'Suporte Técnico',
-      email: 'admin@softspace.com.br',
+      name: 'Diego Ciara',
+      email: 'diegociara.dev@gmail.com.br',
       picture: 'https://seeklogo.com/images/S/spider-man-comic-new-logo-322E9DE914-seeklogo.com.png',
       role: 'FREE',
       password: 'die140401',
@@ -54,42 +43,37 @@ const mocks = async (): Promise<void> => {
     const newUser = await User.create({ ...user, passwordHash: pass }).save();
     console.log(`Usuário ${newUser.name} criado`);
 
-    const plan = await Plan.findOne();
-
     const color = generateColor();
 
-    const hashApiKey = await encrypt(apiKey! as string);
+    const customer = await await createCustomer({ name: user.name, email: user.email})
 
     const workspace = await Workspace.create({
       name: 'Softspace BR',
-      picture: 'https://wave.softspace.com.br/logo-a.svg',
       subscriptionId: 'sub_1Qa3RJCEMWzJZjFdw1bxphVv',
-      customerId: 'cus_RSvfRoGaPZ926O',
-      plan,
-      color,
+      customerId: `customer.id`,
+      logo: 'https://endurancetecnologia.com.br/logo-dark.svg',
+      logoDark: 'https://endurancetecnologia.com.br/logo.svg',
+      backgroundColor: generateColor(),
+      backgroundColorDark: generateColor(),
     }).save();
     console.log(`Assistente ${workspace.name} criado`);
 
-    for (const assistant of assistants) {
-      const vectorStore = [];
+    const vectorStore = [];
 
-      const openaiStore = [];
+    const openaiStore = [];
 
-      for (const vector of vectors) {
-        const openaiVector = await openai.beta.vectorStores.create({
-          name: vector.name,
-        });
+    const openaiVector = await openai.beta.vectorStores.create({
+      name: 'Base de conhecimento',
+    });
 
-        openaiStore.push(openaiVector.id);
+    openaiStore.push(openaiVector.id);
 
-        const vectorCreated = await Vector.create({
-          name: vector.name,
-          vectorId: openaiVector.id,
-          workspace,
-        }).save();
-        vectorStore.push(vectorCreated);
-      }
-    }
+    const vectorCreated = await Vector.create({
+      name: 'Base de conhecimento',
+      vectorId: openaiVector.id,
+      workspace,
+    }).save();
+    vectorStore.push(vectorCreated);
 
     await Access.create({
       user: newUser,

@@ -190,15 +190,15 @@ class WorkspaceController {
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado.' });
 
-      const { name, color, picture, subscriptionId } = req.body;
+      const { name, backgroundColor, logo, subscriptionId } = req.body;
 
       if (!name) return res.status(404).json({ message: 'Informe um nome para seu workspace.' });
 
       const update = await Workspace.update(workspace.id, {
-        picture,
+        logo,
         name,
         subscriptionId,
-        color,
+        backgroundColor,
       });
 
       return res.status(200).json({});

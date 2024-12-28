@@ -2,34 +2,23 @@ import Workspace from '@entities/Workspace';
 import Thread from '@entities/Thread';
 import { decrypt } from '@utils/encrypt/encrypt';
 import OpenAI from 'openai';
-import Assistant from '@entities/Assistant';
 
-
-export async function checkThread(
-  thread: Thread,
-  workspace: Workspace,
-  assistant: Assistant,
-): Promise<any> {
+export async function checkThread(threadId: string, workspace: Workspace): Promise<any> {
   const apiKey = await decrypt(workspace!.openaiApiKey);
   const openai = new OpenAI({ apiKey });
 
   try {
+    const thread = await Thread.findOne({ where: threadId });
     if (!thread) {
       try {
         const newThread = await openai.beta.threads.create();
 
         const threadCreated = await Thread.create({
-          name: '',
           threadId: newThread.id,
-          assistant,
           workspace: workspace,
-          chatActive: true,
         }).save();
 
-        return {
-          openAIThreadId: newThread!.id,
-          thread: threadCreated!,
-        };
+        return threadCreated;
       } catch (error) {
         console.log(error);
       }
@@ -44,18 +33,11 @@ export async function checkThread(
           const newThread = await openai.beta.threads.create();
 
           const threadCreated = await Thread.create({
-            name: '',
             threadId: newThread.id,
-            assistant,
             workspace: workspace,
-            chatActive: true,
           }).save();
 
-          // console.console.log(newThread.id);
-          return {
-            openAIThreadId: newThread!.id,
-            thread: threadCreated!,
-          };
+          return threadCreated
         } catch (error) {
           console.log(error);
         }
@@ -65,3 +47,4 @@ export async function checkThread(
     console.error(error);
   }
 }
+

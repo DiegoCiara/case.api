@@ -1,88 +1,65 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
-import Thread from '@entities/Thread';
 import Workspace from '@entities/Workspace';
-import Token from '@entities/Token';
-import Message from '@entities/Message';
 import { checkRun, getActiveRun } from './checks/checkRunStatus';
 import { decrypt } from '@utils/encrypt/encrypt';
-import Assistant from '@entities/Assistant';
+import { token } from '@utils/functions/createToken';
+import { Message } from 'openai/resources/beta/threads/messages';
 
 dotenv.config();
 
-// const openai = new OpenAI({
-//   apiKey: process.env.OPENAI_KEY,
-// });
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_KEY,
+});
 
 // Buffer para armazenar mensagens por chatId, agora capaz de armazenar objetos de mensagem
-export async function openai(workspace: Workspace, assistant: Assistant, thread: Thread): Promise<any> {
+export async function mainOpenAI(workspace: Workspace, threadId: string, messages: any): Promise<any> {
   try {
-    const openAIThreadId = thread.threadId;
-    console.log('openAIThreadId', openAIThreadId);
-    const apiKey = await decrypt(workspace!.openaiApiKey);
-    const openai = new OpenAI({ apiKey });
 
-    if (!openAIThreadId) return;
+    if (!threadId) return;
 
-    const openAIAssistant = await openai.beta.assistants.retrieve(assistant.openaiAssistantId!);
+    const assistant = await openai.beta.assistants.retrieve(workspace.assistantId!);
 
-    let activeRun = await getActiveRun(openai, openAIThreadId);
+    let activeRun = await getActiveRun(openai, threadId);
 
     if (activeRun) {
-      const messages = await checkRun(openai, thread, activeRun.id, workspace, assistant);
+      const messages = await checkRun(openai, threadId, activeRun.id);
       return {
-        openAIThreadId: openAIThreadId,
+        threadId: threadId,
         text: messages.data[0].content[0].text.value.replace(/【\d+:\d+†[^\]]+】/g, ''),
       };
     }
 
+    await openai.beta.threads.messages.create(threadId, {
+      role: 'user',
+      content: messages, //Array de mensagens comoo o openaiMessage
+    });
+
     return new Promise(async (resolve, reject) => {
       try {
         // Combina as mensagens em um único array
-        const run = await openai.beta.threads.runs.create(openAIThreadId, {
-          assistant_id: openAIAssistant.id,
-          instructions: openAIAssistant.instructions,
+        const run = await openai.beta.threads.runs.create(threadId, {
+          assistant_id: assistant.id,
+          instructions: assistant.instructions,
         });
 
-        const messages = await checkRun(openai, thread, run.id, workspace, assistant);
+        const messages = await checkRun(openai, threadId, run.id);
         if (!messages) {
           resolve({
-            openAIThreadId: openAIThreadId,
+            threadId: threadId,
             text: 'Tive um problema em processar sua mensagem, poderia tentar novamente mais tarde?',
           });
           return;
         }
 
-        const runStatus = await openai.beta.threads.runs.retrieve(openAIThreadId, run.id);
+        const runStatus = await openai.beta.threads.runs.retrieve(threadId, run.id);
 
-        const workspaceMessage = messages.data[0].content[0].text.value.replace(/【\d+:\d+†[^\]]+】/g, '');
+        const output = messages.data[0].content;
 
-        const response = await Message.create({
-          workspace: workspace,
-          assistant,
-          thread: thread,
-          type: 'text',
-          content: workspaceMessage,
-          viewed: true,
-          from: 'ASSISTANT',
-        }).save();
-
-        const token = await Token.create({
-          workspace: workspace,
-          total_tokens: runStatus!.usage!.total_tokens,
-          completion_tokens: runStatus!.usage!.completion_tokens,
-          thread: thread,
-          model: openAIAssistant.model,
-          prompt_tokens: runStatus!.usage!.prompt_tokens,
-          assistant,
-          input: workspaceMessage,
-          output: messages.data[0].content[0].text.value,
-        }).save();
+        await token(workspace, threadId, runStatus, assistant.model, messages, output)
 
         console.log('Aguardando mais mensagens...');
-        resolve({
-          text: response,
-        });
+        resolve(output);
       } catch (error) {
         reject(error);
       }
