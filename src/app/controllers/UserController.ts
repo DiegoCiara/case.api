@@ -1,10 +1,8 @@
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import Users from '@entities/User';
-import queryBuilder from '@utils/queryBuilder';
 import emailValidator from '@utils/functions/emailValidator';
 import generatePassword from '@utils/functions/generatePassword';
-import transport from '@src/modules/mailer';
 import sendMail from '@src/services/sendEmail';
 import crypto from 'crypto';
 import Workspace from '@entities/Workspace';
@@ -13,7 +11,7 @@ import User from '@entities/User';
 import eventEmitter from '@utils/emitter'
 import { s3 } from '@utils/s3';
 import { log } from '@utils/functions/createLog';
-import { io, ioSocket } from '@src/socket';
+import { ioSocket } from '@src/socket';
 import { createCustomer } from '@utils/stripe/customer/createCustomer';
 
 interface UserInterface {
