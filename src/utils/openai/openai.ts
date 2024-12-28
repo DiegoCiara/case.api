@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import Workspace from '@entities/Workspace';
-import { checkRun, getActiveRun } from './checks/checkRunStatus';
+import { checkRun, getActiveRun } from './functions/checkRunStatus';
 import { decrypt } from '@utils/encrypt/encrypt';
 import { token } from '@utils/functions/createToken';
 import { Message } from 'openai/resources/beta/threads/messages';
@@ -15,7 +15,6 @@ const openai = new OpenAI({
 // Buffer para armazenar mensagens por chatId, agora capaz de armazenar objetos de mensagem
 export async function mainOpenAI(workspace: Workspace, threadId: string, messages: any): Promise<any> {
   try {
-
     if (!threadId) return;
 
     const assistant = await openai.beta.assistants.retrieve(workspace.assistantId!);
@@ -56,7 +55,7 @@ export async function mainOpenAI(workspace: Workspace, threadId: string, message
 
         const output = messages.data[0].content;
 
-        await token(workspace, threadId, runStatus, assistant.model, messages, output)
+        await token(workspace, threadId, runStatus, assistant.model, messages, output);
 
         console.log('Aguardando mais mensagens...');
         resolve(output);

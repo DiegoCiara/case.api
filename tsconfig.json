@@ -28,7 +28,7 @@
       "@src/*": ["./src/*"]
     }
   },
-  "include": ["src", "__tests__", "setup.js", "src/app/.ts", "downloadAudio.js", "revRun.ts", "src/utils/openai/checks/.ts"]
+  "include": ["src", "__tests__", "setup.js", "src/app/.ts", "downloadAudio.js", "revRun.ts", "src/utils/openai/functions/.ts"]
   // "exclude": ["node_modules"]
 }
 

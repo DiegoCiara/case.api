@@ -1,7 +1,7 @@
 import Workspace from '@entities/Workspace';
 import { mainOpenAI } from '@utils/openai/openai';
 import amqp from 'amqplib';
-import { checkThread } from '@utils/openai/checks/checkThread';
+import { checkThread } from '@utils/openai/functions/checkThread';
 import Thread from '@entities/Thread';
 import { ioSocket } from '@src/socket';
 
@@ -22,7 +22,7 @@ export async function processQueue(queue: string) {
 
         const message = await mainOpenAI(workspace, threadId, messages);
 
-        (await ioSocket).emit(`thread:${threadId}`)
+        (await ioSocket).emit(`thread:${threadId}`);
         // Confirma o processamento da mensagem
         channel.ack(msg);
       }
