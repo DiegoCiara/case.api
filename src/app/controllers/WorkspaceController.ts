@@ -14,6 +14,7 @@ import { deleteMethod } from '@utils/stripe/customer/deletePaymentMethod';
 import { listSubscription } from '@utils/stripe/subscriptions/listSubscription';
 import currency from 'currency.js';
 import { listPlans } from '@utils/stripe/products/listPlans';
+import User from '@entities/User';
 
 class WorkspaceController {
   public async findWorkspace(req: Request, res: Response): Promise<Response> {
@@ -46,9 +47,9 @@ class WorkspaceController {
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });
     }
   }
+
   public async listPlans(req: Request, res: Response): Promise<Response> {
     try {
-
       const data = await listPlans();
 
       console.log(data);
@@ -92,13 +93,13 @@ class WorkspaceController {
 
   public async listPaymentMethods(req: Request, res: Response): Promise<Response> {
     try {
-      const workspaceId = req.header('workspaceId');
+      const userId = req.userId;
 
-      const workspace = await Workspace.findOne(workspaceId);
+      const user = await User.findOne(userId);
 
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+      if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
 
-      const customer = await listPaymentMethods(workspace.customerId);
+      const customer = await listPaymentMethods(user.customerId);
 
       const { data }: any = customer;
 
@@ -125,12 +126,13 @@ class WorkspaceController {
   }
   public async createPaymentMethod(req: Request, res: Response): Promise<Response> {
     try {
-      const workspaceId = req.header('workspaceId');
-      const workspace = await Workspace.findOne(workspaceId);
+      const userId = req.userId;
 
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+      const user = await User.findOne(userId);
 
-      const customer = await listPaymentMethods(workspace.customerId);
+      if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+
+      const customer = await listPaymentMethods(user.customerId);
 
       const { data }: any = customer;
 
@@ -143,17 +145,15 @@ class WorkspaceController {
 
   public async setPaymentAsDefault(req: Request, res: Response): Promise<Response> {
     try {
-      const workspaceId = req.header('workspaceId');
-
       const { payment_method } = req.body;
 
-      console.log('SET PAUYMENRT AS DEFAAAAAAULLLLLLLLT ================================>', req.body.id);
+      const userId = req.userId;
 
-      const workspace = await Workspace.findOne(workspaceId);
+      const user = await User.findOne(userId);
 
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+      if (!user) return res.status(404).json({ message: 'user não encontrado' });
 
-      const customer = await setPaymentMethodAsDefault(workspace.customerId, payment_method);
+      const customer = await setPaymentMethodAsDefault(user.customerId, payment_method);
 
       const { data }: any = customer;
 
@@ -166,13 +166,13 @@ class WorkspaceController {
 
   public async createPaymentIntent(req: Request, res: Response): Promise<Response> {
     try {
-      const workspaceId = req.header('workspaceId');
 
-      const workspace = await Workspace.findOne(workspaceId);
+      const userId = req.userId;
 
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+      const user = await User.findOne(userId);
 
-      const intent = await createPaymentIntent(workspace.customerId);
+      if (!user) return res.status(404).json({ message: 'user não encontrado' });
+      const intent = await createPaymentIntent(user.customerId);
       console.log(intent);
       return res.status(200).json(intent);
     } catch (error) {
@@ -194,10 +194,8 @@ class WorkspaceController {
       if (!name) return res.status(404).json({ message: 'Informe um nome para seu workspace.' });
 
       const update = await Workspace.update(workspace.id, {
-        logo,
         name,
         subscriptionId,
-        backgroundColor,
       });
 
       return res.status(200).json({});
@@ -206,7 +204,6 @@ class WorkspaceController {
       return res.status(404).json({ message: 'Algo deu errado, tente novamente.' });
     }
   }
-
 }
 
 export default new WorkspaceController();

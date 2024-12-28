@@ -34,28 +34,26 @@ const mocks = async (): Promise<void> => {
 
     const user = {
       name: 'Diego Ciara',
-      email: 'diegociara.dev@gmail.com.br',
+      email: 'diegociara.dev@gmail.com',
       picture: 'https://seeklogo.com/images/S/spider-man-comic-new-logo-322E9DE914-seeklogo.com.png',
       role: 'FREE',
       password: 'die140401',
     };
 
+    const customer = await createCustomer({ name: user.name, email: user.email });
+
+    if (!customer) {
+      console.log('Cliente não criado');
+      return;
+    }
+    
     const pass = await bcrypt.hash(user.password, 10);
-    const newUser = await User.create({ ...user, passwordHash: pass }).save();
+
+    const newUser = await User.create({ ...user, customerId: customer.id, passwordHash: pass }).save();
+
     console.log(`Usuário ${newUser.name} criado`);
 
-    const color = generateColor();
-
-    const customer = await createCustomer({ name: user.name, email: user.email})
-
-    if(!customer) {
-      console.log('Cliente não criado')
-      return
-    }
-
-    const tools: any = [
-      { type: 'file_search' },
-    ];
+    const tools: any = [{ type: 'file_search' }];
 
     const openaiVector = await openai.beta.vectorStores.create({
       name: 'Base de conhecimento',
@@ -80,7 +78,6 @@ const mocks = async (): Promise<void> => {
       name: 'Endurance Tecnologia',
       subscriptionId: 'sub_1Qa3RJCEMWzJZjFdw1bxphVv',
       assistantId: assistant.id,
-      customerId: customer.id,
       logo: 'https://endurancetecnologia.com.br/logo-dark.svg',
       logoDark: 'https://endurancetecnologia.com.br/logo.svg',
       backgroundColor: generateColor(),

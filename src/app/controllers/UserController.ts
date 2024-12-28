@@ -13,6 +13,7 @@ import { s3 } from '@utils/s3';
 import { log } from '@utils/functions/createLog';
 import { ioSocket } from '@src/socket';
 import { createCustomer } from '@utils/stripe/customer/createCustomer';
+import { updateCustomer } from '@utils/stripe/customer/updateCustomer';
 
 interface UserInterface {
   name: string;
@@ -385,7 +386,7 @@ class UserController {
 
       const { name, email, role, picture }: UserInterface = req.body;
 
-      if (email && !emailValidator(email)) return res.status(400).json({ message: 'Formato de e-mail inválido.' });
+      if (email && !emailValidator(email) || !email) return res.status(400).json({ message: 'Formato de e-mail inválido.' });
 
       const user = await Users.findOne(id);
 
@@ -395,6 +396,11 @@ class UserController {
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado.' });
 
+      const customer = await updateCustomer(user.customerId, {
+        name,
+        email
+      })
+      console.log(customer)
       let valuesToUpdate: UserInterface;
 
       valuesToUpdate = {

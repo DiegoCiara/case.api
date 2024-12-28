@@ -45,9 +45,6 @@ class Workspace extends BaseEntity {
   subscriptionId!: string;
 
   @Column()
-  customerId!: string;
-
-  @Column()
   assistantId!: string;
 
   @OneToMany(() => File, (document) => document.workspace)

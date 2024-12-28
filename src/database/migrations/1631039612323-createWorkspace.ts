@@ -22,10 +22,6 @@ export class createWorkspace1631039612323 implements MigrationInterface {
             type: 'varchar',
           },
           {
-            name: 'customerId',
-            type: 'varchar',
-          },
-          {
             name: 'name',
             type: 'varchar',
           },

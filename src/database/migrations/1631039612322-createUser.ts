@@ -14,6 +14,10 @@ export class createUser1631039612322 implements MigrationInterface {
             generationStrategy: 'uuid',
           },
           {
+            name: 'customerId',
+            type: 'varchar',
+          },
+          {
             name: 'name',
             type: 'varchar',
           },
