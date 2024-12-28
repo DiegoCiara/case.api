@@ -45,12 +45,17 @@ const mocks = async (): Promise<void> => {
 
     const color = generateColor();
 
-    const customer = await await createCustomer({ name: user.name, email: user.email})
+    const customer = await createCustomer({ name: user.name, email: user.email})
+
+    if(!customer) {
+      console.log('Cliente não criado')
+      return
+    }
 
     const workspace = await Workspace.create({
-      name: 'Softspace BR',
+      name: 'Endurance Tecnologia',
       subscriptionId: 'sub_1Qa3RJCEMWzJZjFdw1bxphVv',
-      customerId: `customer.id`,
+      customerId: customer.id,
       logo: 'https://endurancetecnologia.com.br/logo-dark.svg',
       logoDark: 'https://endurancetecnologia.com.br/logo.svg',
       backgroundColor: generateColor(),

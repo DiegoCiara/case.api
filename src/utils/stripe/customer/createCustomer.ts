@@ -11,14 +11,13 @@ interface CustomerStripe {
   description?: string;
 }
 
-export const createCustomer = async (data: CustomerStripe) => {
+export const createCustomer = async (data: CustomerStripe): Promise<Stripe.Customer | undefined> => {
   try {
     const params: Stripe.CustomerCreateParams = {
       ...data,
     };
 
     const customer: Stripe.Customer = await stripe.customers.create(params);
-    console.log(customer)
     return customer;
   } catch (error) {
     console.error(error)

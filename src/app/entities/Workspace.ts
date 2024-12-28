@@ -19,16 +19,12 @@ import File from './File';
 import Whisper from './Whisper';
 import Vision from './Vision';
 import Vector from './Vector';
-import CreditCard from './CreditCard';
 import Access from './Access';
 
 @Entity({ name: 'workspaces' })
 class Workspace extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
-
-  @Column({ nullable: true })
-  openaiApiKey!: string;
 
   @Column()
   name!: string;
@@ -53,15 +49,6 @@ class Workspace extends BaseEntity {
 
   @Column()
   assistantId!: string;
-
-  @Column({ type: 'jsonb', nullable: true })
-  pageLabels!: string;
-
-  @Column({ type: 'int', default: 100 })
-  s3!: number;
-
-  @OneToMany(() => CreditCard, (card) => card.workspace)
-  creditCards!: CreditCard[];
 
   @OneToMany(() => File, (document) => document.workspace)
   files!: File[];

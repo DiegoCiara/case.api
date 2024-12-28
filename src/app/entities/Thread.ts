@@ -22,14 +22,14 @@ class Thread extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ nullable: true })
+  @Column()
   threadId!: string;
 
   @ManyToOne(() => Workspace, (user) => user.threads)
   @JoinColumn([{ name: 'workspace', referencedColumnName: 'id' }])
   workspace!: Workspace;
 
-  @ManyToOne(() => User, (user) => user.threads, { nullable: true })
+  @ManyToOne(() => User, (user) => user.threads)
   @JoinColumn([{ name: 'user', referencedColumnName: 'id' }])
   user!: User;
 

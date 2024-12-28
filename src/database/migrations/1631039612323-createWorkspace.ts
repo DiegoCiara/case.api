@@ -14,11 +14,6 @@ export class createWorkspace1631039612323 implements MigrationInterface {
             generationStrategy: 'uuid',
           },
           {
-            name: 'openaiApiKey',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
             name: 'subscriptionId',
             type: 'varchar',
           },

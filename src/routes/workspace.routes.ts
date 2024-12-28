@@ -11,7 +11,6 @@ routes.delete('/payment-methods/:id', WorkspaceController.deletePaymentMethod);
 routes.get('/payment-methods/', WorkspaceController.listPaymentMethods);
 routes.get('/payment-intent/', WorkspaceController.createPaymentIntent);
 routes.post('/payment-default/', WorkspaceController.setPaymentAsDefault);
-routes.post('/method/', WorkspaceController.generateCreditCardToken);
 
 export default routes;
 

@@ -18,11 +18,11 @@ export class createToken1631039612333 implements MigrationInterface {
             type: 'uuid',
           },
           {
-            name: 'thread',
-            type: 'uuid',
+            name: 'model',
+            type: 'varchar',
           },
           {
-            name: 'assistant',
+            name: 'thread',
             type: 'uuid',
           },
           {
@@ -34,22 +34,16 @@ export class createToken1631039612333 implements MigrationInterface {
             type: 'float',
           },
           {
-            name: 'model',
-            type: 'varchar',
+            name: 'prompt_tokens',
+            type: 'float',
           },
           {
             name: 'input',
             type: 'jsonb',
-            isNullable: true,
           },
           {
             name: 'output',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'prompt_tokens',
-            type: 'float',
+            type: 'jsonb',
           },
           {
             name: 'createdAt',
@@ -82,14 +76,6 @@ export class createToken1631039612333 implements MigrationInterface {
       new TableForeignKey({
         columnNames: ['thread'],
         referencedTableName: 'threads',
-        referencedColumnNames: ['id'],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'tokens',
-      new TableForeignKey({
-        columnNames: ['assistant'],
-        referencedTableName: 'assistants',
         referencedColumnNames: ['id'],
       })
     );

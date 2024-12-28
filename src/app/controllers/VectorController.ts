@@ -24,6 +24,12 @@ AWS.config.update({
 
 const bucketName = process.env.AWS_BUCKET_NAME;
 
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_KEY,
+});
+
+
 const s3 = new AWS.S3();
 class VectorController {
   public async findAll(req: Request, res: Response): Promise<Response> {
@@ -72,9 +78,6 @@ class VectorController {
       const workspaceFind = await Workspace.findOne(id);
 
       if (!id || !workspaceFind) return res.status(400).json({ message: 'Create failed, try again' });
-
-      const apiKey = await decrypt(workspaceFind.openaiApiKey);
-      const openai = new OpenAI({ apiKey });
 
       const vectorStore = await openai.beta.vectorStores.create({
         name: name,
@@ -148,9 +151,6 @@ class VectorController {
 
       if (!workspace) return res.status(404).json({ message: 'Workspace does not exist' });
 
-      const apiKey = await decrypt(workspace.openaiApiKey);
-      const openai = new OpenAI({ apiKey });
-
       const vector = await Vector.findOne(vectorId, { relations: ['workspace'], where: { workspace: workspace } });
 
       if (!vector) return res.status(404).json({ message: 'Vector does not exist' });
@@ -191,9 +191,6 @@ class VectorController {
       if (!workspaceFind || !vector) {
         return res.status(400).json({ message: 'Workspace ou vetor não encontrado' });
       }
-
-      const apiKey = await decrypt(workspaceFind!.openaiApiKey);
-      const openai = new OpenAI({ apiKey });
 
       const uploadedDocuments = [];
 
@@ -262,9 +259,6 @@ class VectorController {
         return res.status(400).json({ message: 'Workspace ou vetor não encontrado' });
       }
 
-      const apiKey = await decrypt(workspaceFind!.openaiApiKey);
-      const openai = new OpenAI({ apiKey });
-
       if (!file) return res.status(404).json({ message: 'Cannot find file' });
 
       const openaiFile = await openai.files.del(file.fileId);
@@ -293,11 +287,8 @@ class VectorController {
       if (!workspaceFind || !vector) {
         return res.status(400).json({ message: 'Workspace ou vetor não encontrado' });
       }
-      console.log('aui');
 
-      const apiKey = await decrypt(workspaceFind!.openaiApiKey);
-      const openai = new OpenAI({ apiKey });
-
+  
       if (!vector) return res.status(404).json({ message: 'Cannot find vector' });
 
       const vectorStore = await openai.beta.vectorStores.del(vector.vectorId);

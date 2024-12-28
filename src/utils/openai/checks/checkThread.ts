@@ -3,9 +3,11 @@ import Thread from '@entities/Thread';
 import { decrypt } from '@utils/encrypt/encrypt';
 import OpenAI from 'openai';
 
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_KEY,
+});
+
 export async function checkThread(threadId: string, workspace: Workspace): Promise<any> {
-  const apiKey = await decrypt(workspace!.openaiApiKey);
-  const openai = new OpenAI({ apiKey });
 
   try {
     const thread = await Thread.findOne({ where: threadId });

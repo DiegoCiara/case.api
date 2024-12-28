@@ -6,7 +6,6 @@ import { io } from '@src/socket';
 import Thread from '@entities/Thread';
 import { encrypt } from '@utils/encrypt/encrypt';
 import OpenAI from 'openai';
-import CreditCard from '@entities/CreditCard';
 import { createCustomer } from '@utils/stripe/customer/createCustomer';
 import { listInvoices } from '@utils/stripe/invoices/listInvoices';
 import { listPaymentMethods } from '@utils/stripe/customer/listPaymentMethods';
@@ -208,70 +207,6 @@ class WorkspaceController {
     }
   }
 
-  public async generateCreditCardToken(req: Request, res: Response): Promise<Response> {
-    try {
-      const { cardNumber, expiryMonth, expiryYear, cvv, holderName } = req.body;
-
-      const workspaceId = req.header('workspaceId');
-
-      const workspace = await Workspace.findOne(workspaceId);
-
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado.' });
-
-      // Adicione a validação necessária para os dados do cartão aqui
-
-      const tokenResponse = await axios.post(
-        'https://www.asaas.com/api/v3/payments',
-        {
-          // Substitua os valores abaixo pelos campos correspondentes do cartão
-          cardNumber,
-          expiryMonth,
-          expiryYear,
-          cvv,
-          holderName,
-        },
-        {
-          headers: { 'Access-Token': process.env.ASAAS_API_KEY },
-        }
-      );
-
-      const creditCard = await CreditCard.create({
-        workspace,
-      });
-
-      return res.status(200).json(tokenResponse.data);
-    } catch (error) {
-      console.error('Error generating credit card token:', error);
-      return res.status(500).json({ error: 'Error generating credit card token' });
-    }
-  }
-
-  public async createSubscription(req: Request, res: Response): Promise<Response> {
-    try {
-      const { customerId, billingType, value, creditCardToken } = req.body;
-
-      // Validações para os dados da assinatura
-
-      const subscriptionResponse = await axios.post(
-        'https://www.asaas.com/api/v3/subscriptions',
-        {
-          customer: customerId,
-          billingType,
-          value,
-          nextDueDate: '2024-02-01', // Exemplo de data, ajuste conforme necessário
-          creditCard: { token: creditCardToken },
-        },
-        {
-          headers: { 'Access-Token': process.env.ASAAS_API_KEY },
-        }
-      );
-
-      return res.status(200).json(subscriptionResponse.data);
-    } catch (error) {
-      console.error('Error creating subscription:', error);
-      return res.status(500).json({ error: 'Error creating subscription' });
-    }
-  }
 }
 
 export default new WorkspaceController();

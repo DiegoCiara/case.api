@@ -22,10 +22,6 @@ export class createVision1631039612353 implements MigrationInterface {
             type: 'uuid',
           },
           {
-            name: 'assistant',
-            type: 'uuid',
-          },
-          {
             name: 'type',
             type: 'varchar',
           },
@@ -64,14 +60,6 @@ export class createVision1631039612353 implements MigrationInterface {
       new TableForeignKey({
         columnNames: ['workspace'],
         referencedTableName: 'workspaces',
-        referencedColumnNames: ['id'],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'visions',
-      new TableForeignKey({
-        columnNames: ['assistant'],
-        referencedTableName: 'assistants',
         referencedColumnNames: ['id'],
       })
     );

@@ -33,7 +33,6 @@ export async function SocketEmitController(socketPlatform: Server) {
       const access = await Access.findOne({ where: { user, workspace } });
       const result = {
         role: access?.role,
-        hasOpenaiApiKey: workspace?.openaiApiKey ? true : false,
       };
       socket.emit(`permission:${userId}`, result);
     }

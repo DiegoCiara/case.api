@@ -16,20 +16,14 @@ export class createThread1631039612332 implements MigrationInterface {
           {
             name: 'threadId',
             type: 'varchar',
-            isNullable: true,
           },
           {
             name: 'workspace',
             type: 'uuid',
           },
           {
-            name: 'assistant',
-            type: 'uuid',
-          },
-          {
             name: 'user',
             type: 'uuid',
-            isNullable: true,
           },
           {
             name: 'name',
@@ -55,14 +49,6 @@ export class createThread1631039612332 implements MigrationInterface {
             isNullable: true,
           },
         ],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'threads',
-      new TableForeignKey({
-        columnNames: ['assistant'],
-        referencedTableName: 'assistants',
-        referencedColumnNames: ['id'],
       })
     );
     await queryRunner.createForeignKey(

@@ -18,10 +18,6 @@ export class createWhisper1631039612352 implements MigrationInterface {
             type: 'uuid',
           },
           {
-            name: 'assistant',
-            type: 'uuid',
-          },
-          {
             name: 'thread',
             type: 'uuid',
           },
@@ -68,14 +64,6 @@ export class createWhisper1631039612352 implements MigrationInterface {
       new TableForeignKey({
         columnNames: ['thread'],
         referencedTableName: 'threads',
-        referencedColumnNames: ['id'],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'whispers',
-      new TableForeignKey({
-        columnNames: ['assistant'],
-        referencedTableName: 'assistants',
         referencedColumnNames: ['id'],
       })
     );
