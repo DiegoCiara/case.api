@@ -7,8 +7,20 @@ const stripe = new Stripe(`${process.env.STRIPE_KEY}`);
 
 export const listPlans = async () => {
   try {
-    const products = await stripe.products.list();
-    return products;
+    const products: any = await stripe.products.list();
+
+    const plans: any = await Promise.all(
+      products.data.map(async (e: any) => {
+        const price = await stripe.prices.retrieve(e?.default_price);
+        return {
+          ...e,
+          price
+        }
+      })
+    );
+
+
+    return plans;
   } catch (error) {
     console.error(error);
     return;

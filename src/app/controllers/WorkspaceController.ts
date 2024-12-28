@@ -50,7 +50,7 @@ class WorkspaceController {
   public async listPlans(req: Request, res: Response): Promise<Response> {
     try {
 
-      const { data }:any = await listPlans();
+      const data = await listPlans();
 
       console.log(data);
       return res.status(200).json(data);
@@ -80,6 +80,7 @@ class WorkspaceController {
           status: e.status,
           amount_paid: e.amount_paid,
           created: e.created,
+          hosted_invoice_url: e.hosted_invoice_url,
         };
       });
       console.log(invoices);
