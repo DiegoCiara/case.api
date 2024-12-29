@@ -35,7 +35,7 @@ const mocks = async (): Promise<void> => {
     const user = {
       name: 'Diego Ciara',
       email: 'diegociara.dev@gmail.com',
-      picture: 'https://seeklogo.com/images/S/spider-man-comic-new-logo-322E9DE914-seeklogo.com.png',
+      picture: 'https://case-endurance.vercel.app/spider-logo.png',
       role: 'FREE',
       password: 'die140401',
     };
@@ -78,7 +78,7 @@ const mocks = async (): Promise<void> => {
       name: 'Endurance Tecnologia',
       subscriptionId: 'sub_1Qa3RJCEMWzJZjFdw1bxphVv',
       assistantId: assistant.id,
-      assistantPicture: 'https://seeklogo.com/images/S/spider-man-comic-new-logo-322E9DE914-seeklogo.com.png',
+      assistantPicture: 'https://case-endurance.vercel.app/spider-logo.png',
       logo: 'https://endurancetecnologia.com.br/logo-dark.svg',
       logoDark: 'https://endurancetecnologia.com.br/logo.svg',
       colorTheme: generateColor(),
