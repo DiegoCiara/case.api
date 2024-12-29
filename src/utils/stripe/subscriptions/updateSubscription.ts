@@ -5,9 +5,13 @@ dotenv.config();
 
 const stripe = new Stripe(`${process.env.STRIPE_KEY}`);
 
-export const updateSubscription = async (subscriptionId: string, priceId: string, paymentMethodId:string) => {
+export const updateSubscription = async (
+  subscriptionId: string,
+  priceId: string,
+  paymentMethodId: string
+) => {
   try {
-    // 1. Recupera os itens da assinatura
+    // 1. Recupera a assinatura atual
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
     if (!subscription) {
@@ -16,7 +20,8 @@ export const updateSubscription = async (subscriptionId: string, priceId: string
 
     const currentItem = subscription.items.data[0]; // Assume que há apenas um item na assinatura
 
-    const invoices = await stripe.subscriptions.update(subscriptionId, {
+    // 2. Atualiza a assinatura com o novo preço e comportamento de rateio
+    const updatedSubscription = await stripe.subscriptions.update(subscriptionId, {
       default_payment_method: paymentMethodId,
       items: [
         {
@@ -24,16 +29,13 @@ export const updateSubscription = async (subscriptionId: string, priceId: string
           price: priceId,
         },
       ],
-      proration_behavior: 'create_prorations',
-
+      proration_behavior: "always_invoice", // Gera uma fatura para os ajustes proporcionais
     });
 
-    console.log(invoices);
-
-    return invoices;
+    console.log(updatedSubscription)
+    return updatedSubscription;
   } catch (error) {
-    console.error(error);
-    return; 
+    console.error('Erro ao atualizar a assinatura:', error);
+    throw error;
   }
 };
-

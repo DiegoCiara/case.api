@@ -30,16 +30,16 @@ class Workspace extends BaseEntity {
   name!: string;
 
   @Column({ nullable: true })
-  logo!: string;
+  assistantPicture!: string;
 
-  @Column()
-  backgroundColor!: string;
+  @Column({ nullable: true })
+  logo!: string;
 
   @Column({ nullable: true })
   logoDark!: string;
 
   @Column()
-  backgroundColorDark!: string;
+  colorTheme!: string;
 
   @Column()
   subscriptionId!: string;

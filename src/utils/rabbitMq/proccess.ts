@@ -1,7 +1,7 @@
 import Workspace from '@entities/Workspace';
-import { mainOpenAI } from '@utils/openai/openai';
+import { mainOpenAI } from '@utils/openai/chat/openai';
 import amqp from 'amqplib';
-import { checkThread } from '@utils/openai/functions/checkThread';
+import { checkThread } from '@utils/openai/chat/functions/checkThread';
 import Thread from '@entities/Thread';
 import { ioSocket } from '@src/socket';
 

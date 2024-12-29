@@ -26,19 +26,15 @@ export class createWorkspace1631039612323 implements MigrationInterface {
             type: 'varchar',
           },
           {
-            name: 'backgroundColor',
-            type: 'varchar',
-          },
-          {
             name: 'logo',
             type: 'varchar',
           },
           {
-            name: 'backgroundColorDark',
+            name: 'logoDark',
             type: 'varchar',
           },
           {
-            name: 'logoDark',
+            name: 'colorTheme',
             type: 'varchar',
           },
           {

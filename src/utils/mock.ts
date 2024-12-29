@@ -46,7 +46,7 @@ const mocks = async (): Promise<void> => {
       console.log('Cliente não criado');
       return;
     }
-    
+
     const pass = await bcrypt.hash(user.password, 10);
 
     const newUser = await User.create({ ...user, customerId: customer.id, passwordHash: pass }).save();
@@ -78,10 +78,10 @@ const mocks = async (): Promise<void> => {
       name: 'Endurance Tecnologia',
       subscriptionId: 'sub_1Qa3RJCEMWzJZjFdw1bxphVv',
       assistantId: assistant.id,
+      assistantPicture: 'https://seeklogo.com/images/S/spider-man-comic-new-logo-322E9DE914-seeklogo.com.png',
       logo: 'https://endurancetecnologia.com.br/logo-dark.svg',
       logoDark: 'https://endurancetecnologia.com.br/logo.svg',
-      backgroundColor: generateColor(),
-      backgroundColorDark: generateColor(),
+      colorTheme: generateColor(),
     }).save();
     console.log(`Assistente ${workspace.name} criado`);
 
