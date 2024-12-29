@@ -15,13 +15,15 @@ import { listSubscription } from '@utils/stripe/subscriptions/listSubscription';
 import currency from 'currency.js';
 import { listPlans } from '@utils/stripe/products/listPlans';
 import User from '@entities/User';
+import { updateSubscription } from '@utils/stripe/subscriptions/updateSubscription';
+import { findPlan } from '@utils/stripe/products/findPlan';
 
 class WorkspaceController {
   public async findWorkspace(req: Request, res: Response): Promise<Response> {
     try {
       const workspaceId = req.header('workspaceId');
 
-      const workspace = await Workspace.findOne(workspaceId, { relations: ['plan', 'creditCards'] });
+      const workspace = await Workspace.findOne(workspaceId);
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
@@ -36,7 +38,7 @@ class WorkspaceController {
     try {
       const workspaceId = req.header('workspaceId');
 
-      const workspace = await Workspace.findOne(workspaceId, { relations: ['plan', 'creditCards'] });
+      const workspace = await Workspace.findOne(workspaceId);
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
@@ -53,6 +55,16 @@ class WorkspaceController {
       const data = await listPlans();
 
       console.log(data);
+      return res.status(200).json(data);
+    } catch (error) {
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+
+  public async findPlan(req: Request, res: Response): Promise<Response> {
+    try {
+      const { priceId } = req.params;
+      const data = await findPlan(priceId);
       return res.status(200).json(data);
     } catch (error) {
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });
@@ -166,7 +178,6 @@ class WorkspaceController {
 
   public async createPaymentIntent(req: Request, res: Response): Promise<Response> {
     try {
-
       const userId = req.userId;
 
       const user = await User.findOne(userId);
@@ -175,6 +186,27 @@ class WorkspaceController {
       const intent = await createPaymentIntent(user.customerId);
       console.log(intent);
       return res.status(200).json(intent);
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+
+  public async upgradePlan(req: Request, res: Response): Promise<Response> {
+    try {
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado.' });
+
+      const { planId, paymentMethodId } = req.body;
+
+      const customer = await updateSubscription(workspace.subscriptionId, planId, paymentMethodId);
+
+      if(!customer) return res.status(404).json({ message: 'Ocorreu um erro, tente nvoamente' });
+
+      return res.status(200).json(customer);
     } catch (error) {
       console.log(error);
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });

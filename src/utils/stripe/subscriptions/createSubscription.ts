@@ -15,6 +15,7 @@ export const createSubscription = async (customerId: string, priceId: string, pa
           price: priceId,
         },
       ],
+      days_until_due: 7
     });
 
     console.log(invoices);

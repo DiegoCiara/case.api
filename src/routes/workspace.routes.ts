@@ -4,6 +4,8 @@ import WorkspaceController from '@controllers/WorkspaceController';
 const routes = Router();
 routes.get('/', WorkspaceController.findWorkspace);
 routes.put('/', WorkspaceController.updateWorkspace);
+routes.get('/price/:priceId', WorkspaceController.findPlan);
+routes.put('/price/', WorkspaceController.upgradePlan);
 routes.get('/plans/', WorkspaceController.listPlans);
 routes.get('/subscription/', WorkspaceController.findSubscription);
 routes.get('/invoices/', WorkspaceController.listInvoices);
