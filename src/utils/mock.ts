@@ -6,8 +6,6 @@ import Workspace from '@entities/Workspace';
 import OpenAI from 'openai';
 import { generateColor } from './functions/generateColor';
 import Access from '@entities/Access';
-import { encrypt } from './encrypt/encrypt';
-import Vector from '@entities/Vector';
 
 import dotenv from 'dotenv';
 import { createCustomer } from './stripe/customer/createCustomer';
@@ -78,6 +76,7 @@ const mocks = async (): Promise<void> => {
       name: 'Endurance Tecnologia',
       subscriptionId: 'sub_1Qa3RJCEMWzJZjFdw1bxphVv',
       assistantId: assistant.id,
+      vectorId: openaiVector.id,
       assistantPicture: 'https://case-endurance.vercel.app/spider-logo.png',
       logo: 'https://endurancetecnologia.com.br/logo-dark.svg',
       logoDark: 'https://endurancetecnologia.com.br/logo.svg',
@@ -87,7 +86,7 @@ const mocks = async (): Promise<void> => {
 
     await Access.create({
       user: newUser,
-      role: 'SUPPORT',
+      role: 'OWNER',
       workspace: workspace,
     }).save();
   } catch (error) {

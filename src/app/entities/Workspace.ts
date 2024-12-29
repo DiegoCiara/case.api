@@ -18,7 +18,6 @@ import Thread from './Thread';
 import File from './File';
 import Whisper from './Whisper';
 import Vision from './Vision';
-import Vector from './Vector';
 import Access from './Access';
 
 @Entity({ name: 'workspaces' })
@@ -47,6 +46,9 @@ class Workspace extends BaseEntity {
   @Column()
   assistantId!: string;
 
+  @Column()
+  vectorId!: string;
+
   @OneToMany(() => File, (document) => document.workspace)
   files!: File[];
 
@@ -58,9 +60,6 @@ class Workspace extends BaseEntity {
 
   @OneToMany(() => Thread, (thread) => thread.workspace)
   threads!: Thread[];
-
-  @OneToMany(() => Vector, (credit) => credit.workspace)
-  vectors!: Vector[];
 
   @OneToMany(() => Whisper, (notification) => notification.workspace)
   whispers!: Whisper[];

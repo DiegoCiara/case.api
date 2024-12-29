@@ -30,10 +30,6 @@ export class createFile1631039612356 implements MigrationInterface {
             type: 'uuid',
           },
           {
-            name: 'vector',
-            type: 'uuid',
-          },
-          {
             name: 'createdAt',
             type: 'timestamp',
             default: 'now()',
@@ -56,14 +52,6 @@ export class createFile1631039612356 implements MigrationInterface {
       new TableForeignKey({
         columnNames: ['workspace'],
         referencedTableName: 'workspaces',
-        referencedColumnNames: ['id'],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'files',
-      new TableForeignKey({
-        columnNames: ['vector'],
-        referencedTableName: 'vectors',
         referencedColumnNames: ['id'],
       })
     );

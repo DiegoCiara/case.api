@@ -14,7 +14,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import Workspace from './Workspace';
-import Vector from './Vector';
 
 @Entity({ name: 'files' })
 class File extends BaseEntity {
@@ -33,10 +32,6 @@ class File extends BaseEntity {
   @ManyToOne(() => Workspace, (token) => token.files)
   @JoinColumn([{ name: 'workspace', referencedColumnName: 'id' }])
   workspace!: Workspace;
-
-  @ManyToOne(() => Vector, (token) => token.files)
-  @JoinColumn([{ name: 'vector', referencedColumnName: 'id' }])
-  vector!: Vector;
 
   @CreateDateColumn()
   createdAt!: Date;

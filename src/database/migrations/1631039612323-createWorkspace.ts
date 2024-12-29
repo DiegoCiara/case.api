@@ -22,6 +22,10 @@ export class createWorkspace1631039612323 implements MigrationInterface {
             type: 'varchar',
           },
           {
+            name: 'vectorId',
+            type: 'varchar',
+          },
+          {
             name: 'name',
             type: 'varchar',
           },
