@@ -29,7 +29,7 @@ class VectorController {
     try {
       const workspaceId = req.header('workspaceId');
 
-      const workspace = await Workspace.findOne(workspaceId, { relations: ['files'] });
+      const workspace = await Workspace.findOne(workspaceId);
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
@@ -49,7 +49,7 @@ class VectorController {
     try {
       const workspaceId = req.header('workspaceId');
 
-      const workspace = await Workspace.findOne(workspaceId, { relations: ['files'] });
+      const workspace = await Workspace.findOne(workspaceId);
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
@@ -93,7 +93,7 @@ class VectorController {
   public async uploadFiles(req: Request, res: Response): Promise<Response> {
     const workspaceId = req.header('workspaceId');
 
-    const workspace = await Workspace.findOne(workspaceId, { relations: ['files'] });
+    const workspace = await Workspace.findOne(workspaceId);
 
     if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
