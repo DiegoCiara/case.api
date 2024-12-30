@@ -23,11 +23,9 @@ AWS.config.update({
 
 const bucketName = process.env.AWS_BUCKET_NAME;
 
-
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
 });
-
 
 const s3 = new AWS.S3();
 class VectorController {
@@ -35,12 +33,12 @@ class VectorController {
     try {
       const workspaceId = req.header('workspaceId');
 
-      const workspace = await Workspace.findOne(workspaceId, { relations: ['files']});
+      const workspace = await Workspace.findOne(workspaceId, { relations: ['files'] });
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
       await log('vectors', req, 'findById', 'success', JSON.stringify({ id: workspace.vectorId }), workspace.vectorId);
-
+      console.log(workspace);
       return res.status(200).json(workspace.files);
     } catch (error) {
       await log('vectors', req, 'findById', 'failed', JSON.stringify(error), null);
@@ -48,6 +46,28 @@ class VectorController {
     }
   }
 
+  public async fileById(req: Request, res: Response): Promise<Response> {
+    try {
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const { id } = req.params;
+
+      if (!id) return res.status(404).json({ message: 'Forneça um id de arquivo' });
+
+      const file = await File.findOne(id, { where: { workspace } });
+
+      await log('vectors', req, 'findById', 'success', JSON.stringify({ id: id }), id);
+
+      return res.status(200).json(file);
+    } catch (error) {
+      await log('vectors', req, 'findById', 'failed', JSON.stringify(error), null);
+      return res.status(404).json({ message: 'Cannot find groups, try again' });
+    }
+  }
 
   // public async update(req: Request, res: Response): Promise<Response> {
   //   try {
@@ -66,7 +86,6 @@ class VectorController {
   //       name: name || vector.name,
   //     };
 
-
   //     await log('vectors', req, 'create', 'success', JSON.stringify({ id: id }), { vector: vector, vectorStore: vectorStore });
 
   //     return res.status(200).json({ message: 'Vector updated successfully' });
@@ -78,14 +97,13 @@ class VectorController {
   //   }
   // }
   public async uploadFiles(req: Request, res: Response): Promise<Response> {
-
     const workspaceId = req.header('workspaceId');
 
-    const workspace = await Workspace.findOne(workspaceId, { relations: ['files']});
+    const workspace = await Workspace.findOne(workspaceId, { relations: ['files'] });
 
     if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
-    const { vectorId } = workspace
+    const { vectorId } = workspace;
 
     try {
       const files = req.files as Express.Multer.File[]; // 'files' deve ser a chave usada no multer ou middleware equivalente

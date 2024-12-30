@@ -9,7 +9,8 @@ const uploadMiddleware = upload.array('files') as unknown as RequestHandler;
 const routes = Router();
 
 routes.get('/', VectorController.findById);
-routes.post('/:id/upload/:vectorId', uploadMiddleware, VectorController.uploadFiles);
+routes.get('/:id', VectorController.fileById);
+routes.post('/', uploadMiddleware, VectorController.uploadFiles);
 routes.delete('/:id/file/:fileId', VectorController.deleteFile);
 
 
