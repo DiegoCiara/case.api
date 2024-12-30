@@ -153,7 +153,6 @@ class VectorController {
 
             totalBytesUsed = openaiFile.bytes + totalBytesUsed;
 
-            // Enviar o arquivo para OpenAI
             await openai.beta.vectorStores.fileBatches.createAndPoll(workspace.vectorId, {
               file_ids: [openaiFile.id],
             });

@@ -5,6 +5,7 @@ import { checkRun, getActiveRun } from './functions/checkRunStatus';
 import { decrypt } from '@utils/encrypt/encrypt';
 import { token } from '@utils/functions/createToken';
 import { Message } from 'openai/resources/beta/threads/messages';
+import { formatFunctions } from '../management/functions/formatFunctions';
 
 dotenv.config();
 
@@ -37,9 +38,17 @@ export async function mainOpenAI(workspace: Workspace, threadId: string, message
     return new Promise(async (resolve, reject) => {
       try {
         // Combina as mensagens em um único array
+        const functions = await formatFunctions(workspace);
+
+        const tools: any[] = [
+          ...(assistant.tools ? assistant.tools : []), // Adiciona as funções caso elas existam
+          ...(functions ? functions : []), // Adiciona as funções caso elas existam
+        ];
+
         const run = await openai.beta.threads.runs.create(threadId, {
           assistant_id: assistant.id,
           instructions: assistant.instructions,
+          tools,
         });
 
         const messages = await checkRun(openai, threadId, run.id);

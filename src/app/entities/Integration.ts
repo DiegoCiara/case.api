@@ -20,7 +20,9 @@ interface Headers {
   value: string
 };
 
-interface Body extends Headers {
+interface Body  {
+  key: string;
+  description: string;
   required: boolean;
 }
 

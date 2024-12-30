@@ -1,0 +1,28 @@
+
+{
+  "type": "function",
+  "function": {
+    "name": "createDealCustomer",
+    "description": "Função para cadastrar um novo cliente com uma negociacão para equipe visualizar.",
+    "strict": true,
+    "parameters": {
+      "type": "object",
+      "required": [
+        "name",
+        "cpfCnpj",
+        "observation"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Nome do contato"
+        },
+        "cpfCnpj": {
+          "type": "string",
+          "description": "Apenas os números do CPF ou CNPJ do cliente"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
