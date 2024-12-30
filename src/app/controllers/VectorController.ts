@@ -4,7 +4,6 @@ import { log } from '@utils/functions/createLog';
 import AWS from 'aws-sdk';
 import OpenAI from 'openai';
 import fs from 'fs';
-import File from '@entities/File';
 import { ioSocket } from '@src/socket';
 import { listFiles } from '@utils/openai/management/vector/listFiles';
 
@@ -70,28 +69,26 @@ class VectorController {
     }
   }
 
-  public async fileById(req: Request, res: Response): Promise<Response> {
-    try {
-      const workspaceId = req.header('workspaceId');
+  // public async fileById(req: Request, res: Response): Promise<Response> {
+  //   try {
+  //     const workspaceId = req.header('workspaceId');
 
-      const workspace = await Workspace.findOne(workspaceId);
+  //     const workspace = await Workspace.findOne(workspaceId);
 
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+  //     if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
-      const { id } = req.params;
+  //     const { id } = req.params;
 
-      if (!id) return res.status(404).json({ message: 'Forneça um id de arquivo' });
+  //     if (!id) return res.status(404).json({ message: 'Forneça um id de arquivo' });
 
-      const file = await File.findOne(id, { where: { workspace } });
+  //     await log('vectors', req, 'findById', 'success', JSON.stringify({ id: id }), id);
 
-      await log('vectors', req, 'findById', 'success', JSON.stringify({ id: id }), id);
-
-      return res.status(200).json(file);
-    } catch (error) {
-      await log('vectors', req, 'findById', 'failed', JSON.stringify(error), null);
-      return res.status(404).json({ message: 'Cannot find File' });
-    }
-  }
+  //     return res.status(200).json('');
+  //   } catch (error) {
+  //     await log('vectors', req, 'findById', 'failed', JSON.stringify(error), null);
+  //     return res.status(404).json({ message: 'Cannot find File' });
+  //   }
+  // }
 
   public async uploadFiles(req: Request, res: Response): Promise<Response> {
     const workspaceId = req.header('workspaceId');

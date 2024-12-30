@@ -15,7 +15,6 @@ import {
 } from 'typeorm';
 import Token from './Token';
 import Thread from './Thread';
-import File from './File';
 import Whisper from './Whisper';
 import Vision from './Vision';
 import Access from './Access';
@@ -48,9 +47,6 @@ class Workspace extends BaseEntity {
 
   @Column()
   vectorId!: string;
-
-  @OneToMany(() => File, (document) => document.workspace)
-  files!: File[];
 
   @OneToMany(() => Token, (token) => token.workspace)
   tokens!: Token[];
