@@ -11,7 +11,9 @@ const routes = Router();
 routes.get('/', VectorController.findById);
 routes.get('/:id', VectorController.fileById);
 routes.post('/', uploadMiddleware, VectorController.uploadFiles);
-routes.delete('/:id/file/:fileId', VectorController.deleteFile);
+routes.post('/batch/', VectorController.deleteBatchFiles);
+routes.get('/storage/usage', VectorController.getStorage);
+routes.delete('/:id', VectorController.deleteFile);
 
 
 export default routes;

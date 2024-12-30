@@ -2,18 +2,11 @@ import Workspace from '@entities/Workspace';
 import { Request, Response } from 'express';
 import { log } from '@utils/functions/createLog';
 import AWS from 'aws-sdk';
-import { decrypt } from '@utils/encrypt/encrypt';
 import OpenAI from 'openai';
 import fs from 'fs';
 import File from '@entities/File';
-
-interface VectorInterface {
-  name: string;
-  phone?: string;
-  email?: string;
-  site?: string;
-  workspace?: Workspace;
-}
+import { ioSocket } from '@src/socket';
+import { listFiles } from '@utils/openai/management/vector/listFiles';
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -27,6 +20,10 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
 });
 
+const GB = 1024 * 1024 * 1024; // 1GB em bytes
+const percentOf250MB = 250 / 1024; // 250MB em GB
+const maxStorage = percentOf250MB * GB; // Percentual proporcional a 250MB de 1GB em bytes
+
 const s3 = new AWS.S3();
 class VectorController {
   public async findById(req: Request, res: Response): Promise<Response> {
@@ -38,9 +35,36 @@ class VectorController {
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
       await log('vectors', req, 'findById', 'success', JSON.stringify({ id: workspace.vectorId }), workspace.vectorId);
-      console.log(workspace);
-      return res.status(200).json(workspace.files);
+
+      const files = await listFiles(openai, workspace)
+      console.log(files);
+      return res.status(200).json(files);
     } catch (error) {
+      console.log(error);
+      await log('vectors', req, 'findById', 'failed', JSON.stringify(error), null);
+      return res.status(404).json({ message: 'Cannot find groups, try again' });
+    }
+  }
+
+  public async getStorage(req: Request, res: Response): Promise<Response> {
+    try {
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId, { relations: ['files'] });
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const vector = await openai.beta.vectorStores.retrieve(workspace.vectorId);
+
+      const totalBytesUsed = vector.usage_bytes;
+
+      const usagePercentage = (totalBytesUsed / maxStorage) * 100;
+
+      await log('vectors', req, 'findById', 'success', JSON.stringify({ id: workspace.vectorId }), workspace.vectorId);
+
+      return res.status(200).json({ percent: usagePercentage.toFixed(2), bytes: totalBytesUsed });
+    } catch (error) {
+      console.log(error);
       await log('vectors', req, 'findById', 'failed', JSON.stringify(error), null);
       return res.status(404).json({ message: 'Cannot find groups, try again' });
     }
@@ -65,37 +89,10 @@ class VectorController {
       return res.status(200).json(file);
     } catch (error) {
       await log('vectors', req, 'findById', 'failed', JSON.stringify(error), null);
-      return res.status(404).json({ message: 'Cannot find groups, try again' });
+      return res.status(404).json({ message: 'Cannot find File' });
     }
   }
 
-  // public async update(req: Request, res: Response): Promise<Response> {
-  //   try {
-  //     const { name }: VectorInterface = req.body;
-  //     const { id, vectorId } = req.params;
-
-  //     const workspace = await Workspace.findOne(id);
-
-  //     if (!workspace) return res.status(404).json({ message: 'Workspace does not exist' });
-
-  //     const vector = await Vector.findOne(vectorId, { relations: ['workspace'], where: { workspace: workspace } });
-
-  //     if (!vector) return res.status(404).json({ message: 'Vector does not exist' });
-
-  //     const valuesToUpdateVector: VectorInterface = {
-  //       name: name || vector.name,
-  //     };
-
-  //     await log('vectors', req, 'create', 'success', JSON.stringify({ id: id }), { vector: vector, vectorStore: vectorStore });
-
-  //     return res.status(200).json({ message: 'Vector updated successfully' });
-  //   } catch (error) {
-  //     console.error(error);
-  //     await log('vectors', req, 'update', 'failed', JSON.stringify(error), null);
-
-  //     return res.status(404).json({ error: 'Update failed, try again' });
-  //   }
-  // }
   public async uploadFiles(req: Request, res: Response): Promise<Response> {
     const workspaceId = req.header('workspaceId');
 
@@ -116,53 +113,75 @@ class VectorController {
         return res.status(400).json({ message: 'Workspace ou vetor não encontrado' });
       }
 
-      const uploadedDocuments = [];
+      let completed = 0;
+      let failed = 0;
 
       if (!files || files.length === 0) {
         console.log('Sem documentos para adicionar');
+        return res.status(400).json({ message: 'Documentos não enviados.' });
       } else {
         for (const file of files) {
-          const fileContent = fs.readFileSync(file.path);
+          const vector = await openai.beta.vectorStores.retrieve(workspace.vectorId);
 
-          // Criar o arquivo na OpenAI
-          const openaiFile = await openai.files.create({
-            file: fs.createReadStream(file.path),
-            purpose: 'assistants',
+          console.log(vector);
+
+          let totalBytesUsed = vector.usage_bytes;
+
+          // Calculando a porcentagem do uso real
+          const usagePercentage = (totalBytesUsed / maxStorage) * 100;
+
+          console.log('FILE SIZE', file.size);
+
+          const usagePercentageSum = (totalBytesUsed + file.size / maxStorage) * 100;
+
+          console.log({
+            totalBytesUsed: {
+              title: 'Used',
+              bytes: totalBytesUsed,
+            },
+            totalSum: {
+              title: 'sum',
+              bytes: totalBytesUsed + file.size,
+            },
           });
 
-          // Fazer o upload do arquivo para o bucket S3
-          const params = {
-            Bucket: bucketName!,
-            Key: `workspace:${workspace.id}/vector:${workspace.vectorId}/file:${openaiFile.id}`, // Nome do arquivo no bucket
-            Body: fileContent,
-            ContentType: file.mimetype,
-          };
-          const s3Response = await s3.upload(params).promise();
+          if (usagePercentage >= 100 && usagePercentageSum >= 100) {
+            failed = failed + 1;
+          } else {
 
-          // Criar a referência no banco de dados
-          const document = await File.create({
-            name: `${file.originalname}`, // Nome do arquivo, pode ser ajustado conforme necessário
-            fileId: openaiFile.id,
-            link: s3Response.Location,
-            workspace: workspace,
-          }).save();
+            const openaiFile = await openai.files.create({
+              file: fs.createReadStream(file.path),
+              purpose: 'assistants',
+            });
 
-          uploadedDocuments.push(document);
+            totalBytesUsed = openaiFile.bytes + totalBytesUsed;
 
-          // Enviar o arquivo para OpenAI
-          await openai.beta.vectorStores.fileBatches.createAndPoll(workspace.vectorId, {
-            file_ids: [openaiFile.id],
-          });
+            // Enviar o arquivo para OpenAI
+            await openai.beta.vectorStores.fileBatches.createAndPoll(workspace.vectorId, {
+              file_ids: [openaiFile.id],
+            });
 
-          // Deletar o arquivo temporário após o processamento
-          fs.unlinkSync(file.path);
+            // Deletar o arquivo temporário após o processamento
+            await fs.unlinkSync(file.path);
+
+            fs.unlink(file.path, (err) => {
+              if (err) {
+                console.error(`Erro ao excluir o arquivo ${file.path}:`, err);
+              } else {
+                console.log(`Arquivo ${file.path} excluído com sucesso.`);
+              }
+            });
+            completed = completed + 1;
+          }
         }
       }
 
       // Logar a operação de sucesso
-      await log('uploadFiles', req, 'uploadFiles', 'success', JSON.stringify({ vectorId }), uploadedDocuments);
+      await log('uploadFiles', req, 'uploadFiles', 'success', JSON.stringify({ vectorId }), vectorId);
 
-      return res.status(200).json(uploadedDocuments); // Retornar os documentos criados
+      (await ioSocket).emit(`vector:${workspace.id}`);
+
+      return res.status(200).json({ completed: completed, failed: failed }); // Retornar os documentos criados
     } catch (error) {
       console.error(error);
       await log('uploadFiles', req, 'uploadFiles', 'failed', JSON.stringify(error), null);
@@ -171,26 +190,65 @@ class VectorController {
   }
   public async deleteFile(req: Request, res: Response): Promise<Response> {
     try {
-      const { id, fileId } = req.params;
+      const { id } = req.params;
 
-      if (!id) return res.status(400).json({ message: 'Please send a customer id' });
+      const workspaceId = req.header('workspaceId');
 
-      const workspace = await Workspace.findOne(id);
-      const file = await File.findOne(fileId);
+      const workspace = await Workspace.findOne(workspaceId);
 
-      if (!workspace || !file) {
-        return res.status(400).json({ message: 'Workspace ou vetor não encontrado' });
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      if (!id) return res.status(400).json({ message: 'Please send a file id' });
+
+      if (!workspace) {
+        return res.status(400).json({ message: 'Workspace não encontrado' });
       }
 
-      if (!file) return res.status(404).json({ message: 'Cannot find file' });
+      const openaiFile = await openai.files.del(id);
 
-      const openaiFile = await openai.files.del(file.fileId);
+      await log('files', req, 'delete', 'success', JSON.stringify(id), { file: openaiFile.id, openaiFile: openaiFile.id });
 
-      const deleteFile = await File.softRemove(file);
-
-      await log('files', req, 'delete', 'success', JSON.stringify(file), { file: deleteFile, openaiFile: openaiFile });
+      (await ioSocket).emit(`vector:${workspace.id}`);
 
       return res.status(200).json({ message: 'File deleted successfully' });
+    } catch (error) {
+      console.error(error);
+      await log('files', req, 'delete', 'failed', JSON.stringify(error), null);
+      return res.status(500).json({ error: 'Delete failed, try again' });
+    }
+  }
+  public async deleteBatchFiles(req: Request, res: Response): Promise<Response> {
+    try {
+      const files = req.body;
+
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      let completed = 0;
+      let failed = 0;
+
+      for (const file of files) {
+        try {
+          const deleted = await openai.files.del(file);
+          if (deleted.id) {
+            completed = completed + 1;
+          } else {
+            failed = failed + 1;
+          }
+        } catch (error) {
+          console.log(error);
+          failed = failed + 1;
+        }
+      }
+
+      await log('files', req, 'delete', 'success', JSON.stringify(workspaceId), { workspaceId });
+
+      (await ioSocket).emit(`vector:${workspace.id}`);
+
+      return res.status(200).json({ completed: completed, failed: failed });
     } catch (error) {
       console.error(error);
       await log('files', req, 'delete', 'failed', JSON.stringify(error), null);
