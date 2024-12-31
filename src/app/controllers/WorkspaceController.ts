@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import Workspace from '@entities/Workspace';
 import OpenAI from 'openai';
 import { listSubscription } from '@utils/stripe/subscriptions/listSubscription';
+import User from '@entities/User';
+import { retrieveAssistant } from '@utils/openai/management/assistants/retrieveAssistant';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
@@ -20,6 +22,37 @@ class WorkspaceController {
 
       return res.status(200).json({ ...workspace, subscription });
     } catch (error) {
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+  public async findWorkspaces(req: Request, res: Response): Promise<Response> {
+    try {
+
+      const id = req.userId;
+
+      const user = await User.findOne(id, { relations: ['accesses', 'accesses.workspace']});
+
+      if (!user) return res.status(404).json({ message: 'user não encontrado' });
+
+      const workspaces = user.accesses.flatMap(e => e.workspace)
+
+      console.log(workspaces)
+
+
+      const assistants: any = await Promise.all(
+        workspaces.map(async (workspace: any) => {
+          const assistant = await retrieveAssistant(openai, workspace.assistantId)
+          return {
+            id: workspace.id,
+            name: workspace.name,
+            assistantName: assistant?.name,
+          };
+        })
+      );
+
+      return res.status(200).json(assistants);
+    } catch (error) {
+      console.error(error)
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });
     }
   }
