@@ -30,6 +30,10 @@ export class createWorkspace1631039612323 implements MigrationInterface {
             type: 'varchar',
           },
           {
+            name: 'favicon',
+            type: 'varchar',
+          },
+          {
             name: 'logo',
             type: 'varchar',
           },

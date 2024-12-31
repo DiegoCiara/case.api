@@ -45,6 +45,7 @@ class WorkspaceController {
           return {
             id: workspace.id,
             name: workspace.name,
+            favicon: workspace.favicon,
             assistantName: assistant?.name,
           };
         })

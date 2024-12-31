@@ -28,13 +28,16 @@ class Workspace extends BaseEntity {
   @Column()
   name!: string;
 
-  @Column({ nullable: true })
+  @Column()
   assistantPicture!: string;
 
-  @Column({ nullable: true })
+  @Column()
+  favicon!: string;
+
+  @Column()
   logo!: string;
 
-  @Column({ nullable: true })
+  @Column()
   logoDark!: string;
 
   @Column()
