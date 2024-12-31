@@ -2,6 +2,7 @@ import Router from 'express';
 import AuthRoutes from './auth.routes';
 import WorkspaceRoutes from './workspace.routes';
 import SubscriptionRoutes from './subscription.routes';
+import IntegrationRoutes from './integration.routes';
 import AssistantRoutes from './assistant.routes';
 import ThreadRoutes from './thread.routes';
 import VectorRoutes from './vector.routes';
@@ -25,6 +26,7 @@ routes.use('/user/', ensureAuthenticated, UserRoutes);
 routes.use('/workspace/', ensureAuthenticated, WorkspaceRoutes);
 routes.use('/assistant/', ensureAuthenticated, AssistantRoutes);
 routes.use('/subscription/', ensureAuthenticated, SubscriptionRoutes);
+routes.use('/integration/', ensureAuthenticated, IntegrationRoutes);
 routes.use('/vector/', ensureAuthenticated, VectorRoutes);
 routes.use('/thread', ThreadRoutes);
 
