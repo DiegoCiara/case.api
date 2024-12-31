@@ -22,11 +22,18 @@ class VectorController {
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
-      await log('vectors', req, 'findById', 'success', JSON.stringify({ id: workspace.vectorId }), workspace.vectorId);
+      const id = req.params.id;
 
-      const files = await listFiles(openai, workspace);
-      console.log(files);
-      return res.status(200).json(files);
+      if (!id) return res.status(404).json({ message: 'Forneça um id de integração' });
+
+      const integration = await Integration.findOne(id, { where: { workspace } });
+
+      if (!integration) return res.status(404).json({ message: 'Integração não encontrada' });
+
+      console.log(integration);
+      await log('vectors', req, 'findById', 'success', JSON.stringify({ id: id }), id);
+
+      return res.status(200).json(integration);
     } catch (error) {
       console.log(error);
       await log('vectors', req, 'findById', 'failed', JSON.stringify(error), null);
@@ -64,6 +71,39 @@ class VectorController {
       if (!name || !functionName || !description || !url || !method) return res.status(400).json({ message: 'Valores inválidos.' });
 
       const integration = await Integration.create({ name, functionName, description, url, method, body, headers, workspace }).save();
+
+      if (!integration.id) return res.status(400).json({ message: 'Não foi possível criar a integração, tente novamente' });
+
+      (await ioSocket).emit(`integration:${workspace.id}`);
+      return res.status(200).json(integration);
+    } catch (error) {
+      console.error(error);
+      await log('uploadFiles', req, 'uploadFiles', 'failed', JSON.stringify(error), null);
+      return res.status(500).json({ message: 'Falha ao criar integração, tente novamente.' });
+    }
+  }
+  public async updateIntegration(req: Request, res: Response): Promise<Response> {
+    const workspaceId = req.header('workspaceId');
+
+    const workspace = await Workspace.findOne(workspaceId);
+
+    if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+    try {
+      const id = req.params.id;
+
+      if (!id) return res.status(404).json({ message: 'ID não informado' });
+
+      const integration = await Integration.findOne(id);
+
+      if (!integration) return res.status(404).json({ message: 'integration não encontrado' });
+
+      const { name, functionName, description, url, method, body, headers } = req.body;
+
+      console.log(name, functionName, description, url, method, body, headers);
+      if (!name || !functionName || !description || !url || !method) return res.status(400).json({ message: 'Valores inválidos.' });
+
+      await Integration.update(integration.id, { name, functionName, description, url, method, body, headers });
 
       if (!integration.id) return res.status(400).json({ message: 'Não foi possível criar a integração, tente novamente' });
 
