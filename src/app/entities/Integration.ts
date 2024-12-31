@@ -21,7 +21,7 @@ interface Headers {
 };
 
 interface Body  {
-  key: string;
+  property: string;
   description: string;
   required: boolean;
 }
