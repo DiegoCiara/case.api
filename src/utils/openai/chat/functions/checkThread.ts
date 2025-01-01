@@ -25,7 +25,7 @@ export async function checkThread(threadId: string, workspace: Workspace): Promi
         console.log(error);
       }
     } else {
-      if (thread.chatActive) {
+      if (thread.active) {
         return {
           openAIThreadId: thread!.threadId,
           thread: thread!,

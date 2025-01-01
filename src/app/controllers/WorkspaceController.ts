@@ -47,6 +47,7 @@ class WorkspaceController {
             name: workspace.name,
             favicon: workspace.favicon,
             assistantName: assistant?.name,
+            picture: workspace.assistantPicture,
           };
         })
       );

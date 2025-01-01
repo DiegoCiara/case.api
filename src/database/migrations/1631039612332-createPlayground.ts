@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 
-export class createThread1631039612332 implements MigrationInterface {
+export class createPlayground1631039612332 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'threads',
+        name: 'playgrounds',
         columns: [
           {
             name: 'id',
@@ -22,7 +22,7 @@ export class createThread1631039612332 implements MigrationInterface {
             type: 'uuid',
           },
           {
-            name: 'customer',
+            name: 'user',
             type: 'uuid',
           },
           // {
@@ -52,7 +52,7 @@ export class createThread1631039612332 implements MigrationInterface {
       })
     );
     await queryRunner.createForeignKey(
-      'threads',
+      'playgrounds',
       new TableForeignKey({
         columnNames: ['workspace'],
         referencedTableName: 'workspaces',
@@ -60,17 +60,17 @@ export class createThread1631039612332 implements MigrationInterface {
       })
     );
     await queryRunner.createForeignKey(
-      'threads',
+      'playgrounds',
       new TableForeignKey({
-        columnNames: ['customer'],
-        referencedTableName: 'customers',
+        columnNames: ['user'],
+        referencedTableName: 'users',
         referencedColumnNames: ['id'],
       })
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('threads');
+    await queryRunner.dropTable('playgrounds');
   }
 }
 

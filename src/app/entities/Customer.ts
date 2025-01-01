@@ -14,10 +14,10 @@ import {
 import Access from './Access';
 import Thread from './Thread';
 import Log from './Log';
-import Playground from './Playground';
+import Workspace from './Workspace';
 
-@Entity({ name: 'users' })
-class User extends BaseEntity {
+@Entity({ name: 'customers' })
+class Customer extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
@@ -26,10 +26,6 @@ class User extends BaseEntity {
 
   @Column()
   email!: string;
-
-  @Column()
-  customerId!: string;
-
   @Column({ nullable: true, default: false })
   hasResetPass!: boolean;
 
@@ -42,14 +38,12 @@ class User extends BaseEntity {
   @Column({ default: true }) //30 minutos
   notifyEnabled!: boolean; //Tempo de espera para aassumir o whatsapp
 
-  @OneToMany(() => Access, (access) => access.user)
-  accesses!: Access[];
+  @OneToMany(() => Thread, (workspace) => workspace.customer)
+  threads!: Thread[];
 
-  @OneToMany(() => Playground, (workspace) => workspace.user)
-  threads!: Playground[];
-
-  @OneToMany(() => Log, (workspace) => workspace.user)
-  logs!: Log[];
+  @ManyToOne(() => Workspace, (token) => token.customers)
+  @JoinColumn([{ name: 'workspace', referencedColumnName: 'id' }])
+  workspace!: Workspace;
 
   @Column({ nullable: true })
   passwordResetToken!: string;
@@ -67,5 +61,5 @@ class User extends BaseEntity {
   deletedAt!: Date; // Modificação feita aqui para permitir valores nulos
 }
 
-export default User;
+export default Customer;
 

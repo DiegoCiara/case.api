@@ -19,6 +19,7 @@ import Whisper from './Whisper';
 import Vision from './Vision';
 import Access from './Access';
 import Integration from './Integration';
+import Customer from './Customer';
 
 @Entity({ name: 'workspaces' })
 class Workspace extends BaseEntity {
@@ -57,6 +58,9 @@ class Workspace extends BaseEntity {
 
   @OneToMany(() => Access, (token) => token.workspace)
   accesses!: Access[];
+
+  @OneToMany(() => Customer, (token) => token.workspace)
+  customers!: Customer[];
 
   @OneToMany(() => Thread, (thread) => thread.workspace)
   threads!: Thread[];
