@@ -20,6 +20,7 @@ export async function processQueue(queue: string, type: string) {
         const { workspaceId, messages, threadId } = object;
         const workspace = await Workspace.findOne(workspaceId);
 
+
         const message = await mainOpenAI(workspace, threadId, messages, type);
 
         (await ioSocket).emit(`${type}:${threadId}`, 'assistant'); //Afrmando que o type pode ser apenas ou playground, ou thread

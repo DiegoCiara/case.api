@@ -88,6 +88,7 @@ export async function SocketEmitController(socketPlatform: Server) {
 
       await processQueue(queue, 'playground');
       console.log('foi')
+
       // socket.emit(`playground:sendMessage:${userId}`, result);
     }
 

@@ -31,7 +31,6 @@ export async function mainOpenAI(workspace: Workspace, threadId: string, message
       };
     }
 
-
     return new Promise(async (resolve, reject) => {
       try {
         // Combina as mensagens em um único array
@@ -42,13 +41,15 @@ export async function mainOpenAI(workspace: Workspace, threadId: string, message
           ...(functions ? functions : []), // Adiciona as funções caso elas existam
         ];
 
-        (await ioSocket).emit(`${type}:${threadId}`)
+        (await ioSocket).emit(`${type}:${threadId}`);
 
         const run = await openai.beta.threads.runs.create(threadId, {
           assistant_id: assistant.id,
           instructions: assistant.instructions,
           tools,
         });
+
+        (await ioSocket).emit(`processing-playground:${threadId}`);
 
         const messages = await checkRun(openai, workspace, threadId, run.id, type);
         if (!messages) {
@@ -65,7 +66,7 @@ export async function mainOpenAI(workspace: Workspace, threadId: string, message
 
         await token(workspace, threadId, runStatus, assistant.model, messages, output, type);
 
-        console.log(output)
+        console.log(output);
         console.log('Aguardando mais mensagens...');
         resolve(output);
       } catch (error) {
