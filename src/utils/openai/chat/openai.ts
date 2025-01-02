@@ -6,6 +6,7 @@ import { decrypt } from '@utils/encrypt/encrypt';
 import { token } from '@utils/functions/createToken';
 import { Message } from 'openai/resources/beta/threads/messages';
 import { formatFunctions } from '../management/functions/formatFunctions';
+import { ioSocket } from '@src/socket';
 
 dotenv.config();
 
@@ -23,17 +24,13 @@ export async function mainOpenAI(workspace: Workspace, threadId: string, message
     let activeRun = await getActiveRun(openai, threadId);
 
     if (activeRun) {
-      const messages = await checkRun(openai, threadId, activeRun.id);
+      const messages = await checkRun(openai, workspace, threadId, activeRun.id, type);
       return {
         threadId: threadId,
         text: messages.data[0].content[0].text.value.replace(/【\d+:\d+†[^\]]+】/g, ''),
       };
     }
 
-    await openai.beta.threads.messages.create(threadId, {
-      role: 'user',
-      content: messages, //Array de mensagens comoo o openaiMessage
-    });
 
     return new Promise(async (resolve, reject) => {
       try {
@@ -45,13 +42,15 @@ export async function mainOpenAI(workspace: Workspace, threadId: string, message
           ...(functions ? functions : []), // Adiciona as funções caso elas existam
         ];
 
+        (await ioSocket).emit(`${type}:${threadId}`)
+
         const run = await openai.beta.threads.runs.create(threadId, {
           assistant_id: assistant.id,
           instructions: assistant.instructions,
           tools,
         });
 
-        const messages = await checkRun(openai, threadId, run.id);
+        const messages = await checkRun(openai, workspace, threadId, run.id, type);
         if (!messages) {
           resolve({
             threadId: threadId,

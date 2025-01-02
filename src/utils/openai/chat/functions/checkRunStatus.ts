@@ -2,6 +2,8 @@ import Thread from '@entities/Thread';
 import Workspace from '@entities/Workspace';
 import OpenAI from 'openai';
 import Log from '@entities/Log';
+import { ioSocket } from '@src/socket';
+import { runIntegration } from './runIntegration';
 
 // Função para verificar se existe um run ativo
 export async function getActiveRun(openai: OpenAI, threadId: string) {
@@ -13,14 +15,14 @@ export async function getActiveRun(openai: OpenAI, threadId: string) {
   }
 }
 
-export async function checkRun(openai: OpenAI, threadId: string, runId: string, type: string): Promise<any> {
+export async function checkRun(openai: OpenAI, workspace: Workspace, threadId: string, runId: string, type: string): Promise<any> {
   return await new Promise((resolve, reject) => {
     let timeoutId: any;
 
     const verify = async (): Promise<void> => {
       const runStatus = await openai.beta.threads.runs.retrieve(threadId, runId);
 
-      console.log('---------------------------------------------------------------------')
+      console.log('---------------------------------------------------------------------');
       if (runStatus.status === 'completed') {
         clearTimeout(timeoutId); // Limpa o timeout se o status for 'completed'
         const messages = await openai.beta.threads.messages.list(threadId);
@@ -30,11 +32,14 @@ export async function checkRun(openai: OpenAI, threadId: string, runId: string, 
       } else if (runStatus.status === 'requires_action') {
         const toolCalls = runStatus.required_action?.submit_tool_outputs?.tool_calls || [];
         try {
+          const integrations = workspace.integrations.map((e) => {
+            return e;
+          });
           const toolOutputs = await Promise.all(
             toolCalls.map(async (tool: any) => {
-
-              if (tool.function.name === 'getCustomer') {
-
+              const integrationFinded = integrations.find(e => e.functionName === tool.function.name)
+              if (integrationFinded) {
+                await runIntegration(integrationFinded);
               }
               return null;
             })
@@ -49,6 +54,7 @@ export async function checkRun(openai: OpenAI, threadId: string, runId: string, 
             verify();
           } else {
             console.log('No tool outputs to submit.');
+            resolve(null);
           }
         } catch (error) {
           console.error(error);
@@ -56,15 +62,15 @@ export async function checkRun(openai: OpenAI, threadId: string, runId: string, 
           await Log.create({
             table: 'actions',
             operation: 'runAction',
-            // user,
             status: 'failed',
             data: JSON.stringify(error),
-          }).save()
+          }).save();
+
           resolve(null);
         }
       } else {
         console.log('Aguardando resposta da OpenAI... Status ==>', runStatus?.status);
-
+        (await ioSocket).emit(`processing-${type}:${threadId}`);
         setTimeout(verify, 3000);
       }
     };

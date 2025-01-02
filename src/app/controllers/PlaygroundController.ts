@@ -9,6 +9,7 @@ import { processQueue } from '@utils/rabbitMq/proccess';
 import Thread from '@entities/Thread';
 import Playground from '@entities/Playground';
 import { retrieveFile } from '@utils/openai/management/threads/fileRetrivie';
+import { ioSocket } from '@src/socket';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
@@ -74,7 +75,6 @@ class PlaygroundController {
 
   public async createPlayground(req: Request, res: Response): Promise<Response> {
     try {
-
       const { text, media } = req.body;
 
       const workspaceId = req.header('workspaceId');
@@ -97,8 +97,58 @@ class PlaygroundController {
 
       if (!threadCreated.id) return res.status(400).json({ message: 'Não foi possível criar a thread, tente novamente.' });
 
+      const messageOpenai:any = formatMessage(media, text);
 
-      const messageOpenai = formatMessageTest(text);
+
+      await openai.beta.threads.messages.create(thread.id, {
+        role: 'user',
+        content: messageOpenai, //Array de mensagens comoo o openaiMessage
+      });
+
+      const data = JSON.stringify({
+        workspaceId: workspace.id,
+        threadId: thread.id,
+        messages: messageOpenai,
+      });
+
+      const queue = `playground:${workspace.id}`;
+
+      await sendToQueue(queue, data);
+
+      await processQueue(queue, 'playground');
+
+      return res.status(200).json(thread.id);
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+  public async sendMessage(req: Request, res: Response): Promise<Response> {
+    try {
+      const { threadId } = req.params;
+      const { text, media } = req.body;
+
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const user = await User.findOne(req.userId);
+
+      if (!user) return res.status(404).json({ message: 'user não encontrado' });
+
+      const thread = await openai.beta.threads.retrieve(threadId);
+
+      if (!thread.id) return res.status(400).json({ message: 'Não foi possível verificar a thread, tente novamente.' });
+
+      const messageOpenai: any = formatMessage(media, text);
+
+      await openai.beta.threads.messages.create(thread.id, {
+        role: 'user',
+        content: messageOpenai, //Array de mensagens comoo o openaiMessage
+      });
+      (await ioSocket).emit(`playground:${thread.id}`); //Afrmando que o type pode ser apenas ou playground, ou thread
 
       const data = JSON.stringify({
         workspaceId: workspace.id,
