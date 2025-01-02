@@ -21,15 +21,17 @@ export async function checkRun(openai: OpenAI, workspace: Workspace, threadId: s
 
     const verify = async (): Promise<void> => {
       const runStatus = await openai.beta.threads.runs.retrieve(threadId, runId);
-
+      (await ioSocket).emit(`processing-${type}:${threadId}`);
       console.log('---------------------------------------------------------------------');
       if (runStatus.status === 'completed') {
         clearTimeout(timeoutId); // Limpa o timeout se o status for 'completed'
         const messages = await openai.beta.threads.messages.list(threadId);
         resolve(messages);
       } else if (runStatus.status === 'failed') {
+        (await ioSocket).emit(`runError-${type}:${threadId}`);
         resolve(null);
       } else if (runStatus.status === 'requires_action') {
+        (await ioSocket).emit(`requireAction-${type}:${threadId}`);
         const toolCalls = runStatus.required_action?.submit_tool_outputs?.tool_calls || [];
         try {
           const integrations = workspace.integrations.map((e) => {

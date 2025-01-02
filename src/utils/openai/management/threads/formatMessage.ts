@@ -11,10 +11,21 @@ export function formatMessage(media: string, message: string) {
   }
 }
 
-export function formatMessageTest(message: string) {
-  return [
-    { type: 'text', text: message },
-    { type: 'image_file', image_file: { file_id: 'file-1yWBXUPkGaYCQ2wgCQbNan' } },
-  ];
+export function transformMessages(messages: any) {
+  return messages.map((msg: any) => {
+    // Extraindo o texto e as anotações do conteúdo
+    const messageText = msg.content.find((e: any) => e.type === 'text');
+    const messageImages = msg.content.filter((e: any) => e.type === 'image_url');
+    const annotations = messageText.text.annotations || [];
+
+    return {
+      id: msg.id,
+      role: msg.role,
+      images: messageImages || [],
+      content: messageText.text.value || '',
+      annotations: annotations, // Incluindo as anotações
+      createdAt: new Date(msg.created_at * 1000).toISOString(), // Convertendo timestamp para ISO8601
+    };
+  }).reverse();
 }
 

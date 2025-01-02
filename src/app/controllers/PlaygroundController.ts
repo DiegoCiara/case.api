@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import Workspace from '@entities/Workspace';
 import OpenAI from 'openai';
 import User from '@entities/User';
-import { formatMessage, formatMessageTest } from '@utils/openai/management/threads/formatMessage';
+import { formatMessage, transformMessages } from '@utils/openai/management/threads/formatMessage';
 import { listMessages } from '@utils/openai/management/threads/listMessages';
 import { sendToQueue } from '@utils/rabbitMq/send';
 import { processQueue } from '@utils/rabbitMq/proccess';
@@ -46,7 +46,11 @@ class PlaygroundController {
 
       const { data }: any = await listMessages(openai, threadId);
 
-      return res.status(200).json(data);
+      console.log(data);
+
+      const messages = transformMessages(data)
+
+      return res.status(200).json(messages);
     } catch (error) {
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });
     }
@@ -118,6 +122,7 @@ class PlaygroundController {
       await processQueue(queue, 'playground');
 
       return res.status(200).json(thread.id);
+
     } catch (error) {
       console.log(error);
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });

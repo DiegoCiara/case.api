@@ -22,7 +22,7 @@ export async function processQueue(queue: string, type: string) {
 
         const message = await mainOpenAI(workspace, threadId, messages, type);
 
-        (await ioSocket).emit(`${type}:${threadId}`); //Afrmando que o type pode ser apenas ou playground, ou thread
+        (await ioSocket).emit(`${type}:${threadId}`, 'assistant'); //Afrmando que o type pode ser apenas ou playground, ou thread
         // Confirma o processamento da mensagem
         channel.ack(msg);
       }
