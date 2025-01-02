@@ -21,7 +21,7 @@ export async function checkRun(openai: OpenAI, workspace: Workspace, threadId: s
 
     const verify = async (): Promise<void> => {
       const runStatus = await openai.beta.threads.runs.retrieve(threadId, runId);
-      (await ioSocket).emit(`processing-${type}:${threadId}`);
+      // (await ioSocket).emit(`processing-${type}:${threadId}`);
       console.log('---------------------------------------------------------------------');
       if (runStatus.status === 'completed') {
         clearTimeout(timeoutId); // Limpa o timeout se o status for 'completed'
