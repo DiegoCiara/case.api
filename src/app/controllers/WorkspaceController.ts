@@ -36,8 +36,6 @@ class WorkspaceController {
 
       const workspaces = user.accesses.flatMap(e => e.workspace)
 
-      console.log(workspaces)
-
 
       const assistants: any = await Promise.all(
         workspaces.map(async (workspace: any) => {

@@ -19,9 +19,7 @@ export async function checkRun(openai: OpenAI, threadId: string, runId: string):
 
     const verify = async (): Promise<void> => {
       const runStatus = await openai.beta.threads.runs.retrieve(threadId, runId);
-      console.log(runStatus.required_action);
-      console.log(runStatus.required_action?.submit_tool_outputs)
-      console.log(runStatus.required_action?.submit_tool_outputs.tool_calls)
+
       console.log('---------------------------------------------------------------------')
       if (runStatus.status === 'completed') {
         clearTimeout(timeoutId); // Limpa o timeout se o status for 'completed'
@@ -66,6 +64,7 @@ export async function checkRun(openai: OpenAI, threadId: string, runId: string):
         }
       } else {
         console.log('Aguardando resposta da OpenAI... Status ==>', runStatus?.status);
+
         setTimeout(verify, 3000);
       }
     };

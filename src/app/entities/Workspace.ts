@@ -20,6 +20,8 @@ import Vision from './Vision';
 import Access from './Access';
 import Integration from './Integration';
 import Customer from './Customer';
+import TokenPlayground from './PlaygroundToken';
+import Playground from './Playground';
 
 @Entity({ name: 'workspaces' })
 class Workspace extends BaseEntity {
@@ -56,6 +58,9 @@ class Workspace extends BaseEntity {
   @OneToMany(() => Token, (token) => token.workspace)
   tokens!: Token[];
 
+  @OneToMany(() => TokenPlayground, (token) => token.workspace)
+  playgroundTokens!: TokenPlayground[];
+
   @OneToMany(() => Access, (token) => token.workspace)
   accesses!: Access[];
 
@@ -64,6 +69,9 @@ class Workspace extends BaseEntity {
 
   @OneToMany(() => Thread, (thread) => thread.workspace)
   threads!: Thread[];
+
+  @OneToMany(() => Playground, (thread) => thread.workspace)
+  playgrounds!: Playground[];
 
   @OneToMany(() => Whisper, (notification) => notification.workspace)
   whispers!: Whisper[];

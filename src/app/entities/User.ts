@@ -46,7 +46,7 @@ class User extends BaseEntity {
   accesses!: Access[];
 
   @OneToMany(() => Playground, (workspace) => workspace.user)
-  threads!: Playground[];
+  playgrounds!: Playground[];
 
   @OneToMany(() => Log, (workspace) => workspace.user)
   logs!: Log[];

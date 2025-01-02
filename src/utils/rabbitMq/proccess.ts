@@ -5,7 +5,7 @@ import { checkThread } from '@utils/openai/chat/functions/checkThread';
 import Thread from '@entities/Thread';
 import { ioSocket } from '@src/socket';
 
-export async function processQueue(queue: string) {
+export async function processQueue(queue: string, type: string) {
   // Precisa passar o nome da fila como parametro
   try {
     const connection = await amqp.connect('amqp://localhost');
@@ -15,14 +15,14 @@ export async function processQueue(queue: string) {
     channel.consume(queue, async (msg) => {
       if (msg !== null) {
         const payload = JSON.parse(msg.content.toString());
-        console.log('payload object parsed', payload.phone);
-        const { workspaceId, messages, threadId } = payload;
+        const object = JSON.parse(payload)
+        console.log('payload object parsed', object, typeof object);
+        const { workspaceId, messages, threadId } = object;
         const workspace = await Workspace.findOne(workspaceId);
-        const threadFind = await Thread.findOne(threadId);
 
-        const message = await mainOpenAI(workspace, threadId, messages);
+        const message = await mainOpenAI(workspace, threadId, messages, type);
 
-        (await ioSocket).emit(`thread:${threadId}`);
+        (await ioSocket).emit(`${type}:${threadId}`); //Afrmando que o type pode ser apenas ou playground, ou thread
         // Confirma o processamento da mensagem
         channel.ack(msg);
       }

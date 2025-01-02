@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 
-export class createPlayground1631039612332 implements MigrationInterface {
+export class createTokenPlayground1631039612333 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'playgrounds',
+        name: 'playgroundTokens',
         columns: [
           {
             name: 'id',
@@ -14,25 +14,36 @@ export class createPlayground1631039612332 implements MigrationInterface {
             generationStrategy: 'uuid',
           },
           {
-            name: 'threadId',
-            type: 'varchar',
-          },
-          {
             name: 'workspace',
             type: 'uuid',
           },
           {
-            name: 'user',
+            name: 'model',
+            type: 'varchar',
+          },
+          {
+            name: 'playground',
             type: 'uuid',
           },
-          // {
-          //   name: 'name',
-          //   type: 'varchar',
-          // },
           {
-            name: 'active',
-            type: 'boolean',
-            default: true,
+            name: 'total_tokens',
+            type: 'float',
+          },
+          {
+            name: 'completion_tokens',
+            type: 'float',
+          },
+          {
+            name: 'prompt_tokens',
+            type: 'float',
+          },
+          {
+            name: 'input',
+            type: 'jsonb',
+          },
+          {
+            name: 'output',
+            type: 'jsonb',
           },
           {
             name: 'createdAt',
@@ -53,7 +64,7 @@ export class createPlayground1631039612332 implements MigrationInterface {
       })
     );
     await queryRunner.createForeignKey(
-      'playgrounds',
+      'playgroundTokens',
       new TableForeignKey({
         columnNames: ['workspace'],
         referencedTableName: 'workspaces',
@@ -61,17 +72,17 @@ export class createPlayground1631039612332 implements MigrationInterface {
       })
     );
     await queryRunner.createForeignKey(
-      'playgrounds',
+      'playgroundTokens',
       new TableForeignKey({
-        columnNames: ['user'],
-        referencedTableName: 'users',
+        columnNames: ['playground'],
+        referencedTableName: 'playgrounds',
         referencedColumnNames: ['id'],
       })
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('playgrounds');
+    await queryRunner.dropTable('playgroundTokens');
   }
 }
 

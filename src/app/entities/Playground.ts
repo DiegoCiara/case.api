@@ -16,8 +16,9 @@ import Token from './Token';
 import User from './User';
 import Whisper from './Whisper';
 import Vision from './Vision';
+import PlaygroundTokens from './PlaygroundToken';
 
-@Entity({ name: 'threads' })
+@Entity({ name: 'playgrounds' })
 class Playground extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -25,16 +26,16 @@ class Playground extends BaseEntity {
   @Column()
   threadId!: string;
 
-  @ManyToOne(() => Workspace, (user) => user.threads)
+  @ManyToOne(() => Workspace, (user) => user.playgrounds)
   @JoinColumn([{ name: 'workspace', referencedColumnName: 'id' }])
   workspace!: Workspace;
 
-  @ManyToOne(() => User, (user) => user.threads)
+  @ManyToOne(() => User, (user) => user.playgrounds)
   @JoinColumn([{ name: 'user', referencedColumnName: 'id' }])
   user!: User;
 
-  @OneToMany(() => Token, (token) => token.thread)
-  tokens!: Token[];
+  @OneToMany(() => PlaygroundTokens, (token) => token.playground)
+  tokens!: PlaygroundTokens[];
 
   @OneToMany(() => Whisper, (token) => token.thread)
   whispers!: Whisper[];
@@ -45,11 +46,8 @@ class Playground extends BaseEntity {
   // @Column({ type: 'enum', enum: ['ASSISTANT', 'USER'], default: 'ASSISTANT' })
   // responsible!: string;
 
-  @Column()
+  @Column({ default: true })
   active!: boolean;
-
-  @Column()
-  usage!: string;
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -7,6 +7,7 @@ import AssistantRoutes from './assistant.routes';
 import ThreadRoutes from './thread.routes';
 import VectorRoutes from './vector.routes';
 import UserRoutes from './user.routes';
+import PlaygroundRoutes from './playground.routes'
 import { ensureAuthenticated } from '@middlewares/ensureAuthenticated';
 
 const routes = Router();
@@ -24,6 +25,7 @@ routes.get('/', (req, res) => {
 routes.use('/auth', AuthRoutes);
 routes.use('/user/', ensureAuthenticated, UserRoutes);
 routes.use('/workspace/', ensureAuthenticated, WorkspaceRoutes);
+routes.use('/playground/', ensureAuthenticated, PlaygroundRoutes);
 routes.use('/assistant/', ensureAuthenticated, AssistantRoutes);
 routes.use('/subscription/', ensureAuthenticated, SubscriptionRoutes);
 routes.use('/integration/', ensureAuthenticated, IntegrationRoutes);

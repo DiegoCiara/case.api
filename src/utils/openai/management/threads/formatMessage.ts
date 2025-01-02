@@ -1,6 +1,4 @@
-
-
-function openaiMessage(media: string, message: string) {
+export function formatMessage(media: string, message: string) {
   if (media) {
     return message
       ? [
@@ -12,3 +10,11 @@ function openaiMessage(media: string, message: string) {
     return [{ type: 'text', text: message }];
   }
 }
+
+export function formatMessageTest(message: string) {
+  return [
+    { type: 'text', text: message },
+    { type: 'image_file', image_file: { file_id: 'file-1yWBXUPkGaYCQ2wgCQbNan' } },
+  ];
+}
+

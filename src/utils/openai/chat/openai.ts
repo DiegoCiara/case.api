@@ -14,7 +14,7 @@ const openai = new OpenAI({
 });
 
 // Buffer para armazenar mensagens por chatId, agora capaz de armazenar objetos de mensagem
-export async function mainOpenAI(workspace: Workspace, threadId: string, messages: any): Promise<any> {
+export async function mainOpenAI(workspace: Workspace, threadId: string, messages: any, type: string): Promise<any> {
   try {
     if (!threadId) return;
 
@@ -64,8 +64,9 @@ export async function mainOpenAI(workspace: Workspace, threadId: string, message
 
         const output = messages.data[0].content;
 
-        await token(workspace, threadId, runStatus, assistant.model, messages, output);
+        await token(workspace, threadId, runStatus, assistant.model, messages, output, type);
 
+        console.log(output)
         console.log('Aguardando mais mensagens...');
         resolve(output);
       } catch (error) {
