@@ -46,8 +46,6 @@ class PlaygroundController {
 
       const { data }: any = await listMessages(openai, threadId);
 
-      console.log(data);
-
       const messages = transformMessages(data)
 
       return res.status(200).json(messages);

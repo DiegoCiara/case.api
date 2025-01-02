@@ -32,8 +32,6 @@ export async function SocketEmitController(socketPlatform: Server) {
   socketPlatform.on('connect', async (socket) => {
     console.log('Usuário conectado');
 
-    socket.on('playground:sendMessage', sendMessage);
-
     function returnChatError(threadId: string) {
       if (threadId) {
         socket.emit(`runError-playGround:${threadId}`);
@@ -96,12 +94,10 @@ export async function SocketEmitController(socketPlatform: Server) {
     socket.off('playground:sendMessage', sendMessage);
     socket.on('playground:sendMessage', sendMessage);
 
+
     const disconnect = () => {
       console.log('Usuário desconectado');
-      socket.removeAllListeners('permission');
       socket.removeAllListeners('playground:sendMessage');
-      socket.removeAllListeners('sourceUsers');
-      socket.removeAllListeners('notify');
       socket.removeAllListeners('viewMessages');
     };
     socket.off('disconnect', disconnect);
