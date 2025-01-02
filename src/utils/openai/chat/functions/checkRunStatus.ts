@@ -13,7 +13,7 @@ export async function getActiveRun(openai: OpenAI, threadId: string) {
   }
 }
 
-export async function checkRun(openai: OpenAI, threadId: string, runId: string): Promise<any> {
+export async function checkRun(openai: OpenAI, threadId: string, runId: string, type: string): Promise<any> {
   return await new Promise((resolve, reject) => {
     let timeoutId: any;
 
