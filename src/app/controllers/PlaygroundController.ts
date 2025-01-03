@@ -53,6 +53,7 @@ class PlaygroundController {
 
       return res.status(200).json(messages);
     } catch (error) {
+      console.log(error)
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });
     }
   }
@@ -98,7 +99,7 @@ class PlaygroundController {
 
       console.log();
 
-      const name = messageOpenai.find((e: any) => e.type === 'text').text || 'Imagem';
+      const name = messageOpenai.find((e: any) => e.type === 'text')?.text || 'Imagem';
 
       const threadCreated = await Playground.create({
         threadId: thread.id,
