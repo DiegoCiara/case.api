@@ -5,6 +5,7 @@ import PlaygroundController from '@src/app/controllers/PlaygroundController';
 const routes = Router();
 
 routes.get('/', PlaygroundController.findPlaygrounds);
+routes.get('/thread/:id', PlaygroundController.findPlayground);
 routes.get('/:threadId', PlaygroundController.listPlaygroundMessages);
 routes.get('/file/:fileId', PlaygroundController.retrieveFile);
 routes.post('/', PlaygroundController.createPlayground);

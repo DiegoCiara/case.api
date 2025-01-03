@@ -34,6 +34,30 @@ class PlaygroundController {
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });
     }
   }
+  public async findPlayground(req: Request, res: Response): Promise<Response> {
+    try {
+
+      const { id } = req.params
+
+      if(!id) return res.status(400).json({ message: 'Id da thread não informado' });
+
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const user = await User.findOne(req.userId);
+
+      if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+
+      const threads = await Playground.find({ where: { workspace, user } });
+      console.log(threads);
+      return res.status(200).json(threads);
+    } catch (error) {
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
 
   public async listPlaygroundMessages(req: Request, res: Response): Promise<Response> {
     try {
@@ -53,7 +77,7 @@ class PlaygroundController {
 
       return res.status(200).json(messages);
     } catch (error) {
-      console.log(error)
+      console.log(error);
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });
     }
   }
@@ -185,6 +209,7 @@ class PlaygroundController {
     try {
       const { id } = req.params;
 
+      if (!id) return res.status(404).json({ message: 'Forneça um id de uma thread' });
       const workspaceId = req.header('workspaceId');
 
       const workspace = await Workspace.findOne(workspaceId);
@@ -195,7 +220,7 @@ class PlaygroundController {
 
       if (!user) return res.status(404).json({ message: 'user não encontrado' });
 
-      console.log(id)
+      console.log(id);
       const thread = await Playground.findOne(id, { where: { workspace } });
 
       if (!thread) return res.status(400).json({ message: 'Não foi possível encontrar a thread, tente novamente.' });
@@ -209,6 +234,39 @@ class PlaygroundController {
       if (deletedThread.id) {
         await Playground.softRemove(thread);
       }
+
+      return res.status(200).json(thread.id);
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+  public async updateThread(req: Request, res: Response): Promise<Response> {
+    try {
+      const { id } = req.params;
+
+      const { name } = req.body;
+
+      if (!id) return res.status(404).json({ message: 'Forneça um id de uma thread' });
+
+      if (!name) return res.status(404).json({ message: 'Forneça um nome para a thread' });
+
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const user = await User.findOne(req.userId);
+
+      if (!user) return res.status(404).json({ message: 'user não encontrado' });
+
+      console.log(id);
+      const thread = await Playground.findOne(id, { where: { workspace } });
+
+      if (!thread) return res.status(400).json({ message: 'Não foi possível encontrar a thread, tente novamente.' });
+
+      await Playground.update(thread.id, { name });
 
       return res.status(200).json(thread.id);
     } catch (error) {
