@@ -10,12 +10,12 @@ export const createSubscription = async (customerId: string, priceId: string, pa
     const invoices = await stripe.subscriptions.create({
       customer: customerId,
       default_payment_method: paymentMethodId,
-      add_invoice_items: [
+      items:[
         {
           price: priceId,
-        },
+        }
       ],
-      days_until_due: 7
+      // trial_period_days: 7
     });
 
     console.log(invoices);

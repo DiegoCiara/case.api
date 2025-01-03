@@ -5,6 +5,8 @@ import { listSubscription } from '@utils/stripe/subscriptions/listSubscription';
 import User from '@entities/User';
 import { retrieveAssistant } from '@utils/openai/management/assistants/retrieveAssistant';
 import { generateColor } from '@utils/functions/generateColor';
+import { createSubscription } from '@utils/stripe/subscriptions/createSubscription';
+import Access from '@entities/Access';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
@@ -82,9 +84,17 @@ class WorkspaceController {
     try {
       const workspaceId = req.header('workspaceId');
 
-      const { name, backgroundColor, logo, subscriptionId } = req.body;
+      const { name, priceId, paymentMethodId } = req.body;
 
       if (!name) return res.status(404).json({ message: 'Informe um nome para seu workspace.' });
+
+      const user = await User.findOne(req.userId)
+
+      if(!user)return res.status(404).json({ message: 'Usuário não encontrado.' });
+
+      const subscription = await createSubscription(user.customerId, priceId, paymentMethodId)
+
+      if(!subscription?.id)return res.status(400).json({ message: 'Não foi possível realizar a assinatura, altere o método de pagamento e tente novamente.' });
 
       const vector = await openai.beta.vectorStores.create({
         name: 'Base de conhecimento',
@@ -102,11 +112,20 @@ class WorkspaceController {
         name,
         assistantId: assistant.id,
         vectorId: vector.id,
-        subscriptionId,
+        subscriptionId: subscription.id,
         colorTheme: generateColor(),
-      });
+      }).save();
 
-      return res.status(200).json({});
+
+      const access = await Access.create({
+        user,
+        workspace,
+        role: 'OWNER'
+      }).save()
+
+      if(!access) return res.status(400).json({ message: 'Ocorreu um erro ao criar seu acesso ao workspace, tente novamente.' });
+
+      return res.status(200).json(workspace);
     } catch (error) {
       console.error(error);
       return res.status(404).json({ message: 'Algo deu errado, tente novamente.' });
