@@ -49,7 +49,7 @@ export async function mainOpenAI(workspace: Workspace, threadId: string, message
           tools,
         });
 
-        (await ioSocket).emit(`processing-playground:${threadId}`);
+        // (await ioSocket).emit(`processing-playground:${threadId}`);
 
         const messages = await checkRun(openai, workspace, threadId, run.id, type);
         if (!messages) {

@@ -17,6 +17,8 @@ import User from './User';
 import Whisper from './Whisper';
 import Vision from './Vision';
 import PlaygroundTokens from './PlaygroundToken';
+import PlaygroundVision from './PlaygroundVision';
+import PlaygroundWhisper from './PlaygroundWhisper';
 
 @Entity({ name: 'playgrounds' })
 class Playground extends BaseEntity {
@@ -37,11 +39,11 @@ class Playground extends BaseEntity {
   @OneToMany(() => PlaygroundTokens, (token) => token.playground)
   tokens!: PlaygroundTokens[];
 
-  @OneToMany(() => Whisper, (token) => token.thread)
-  whispers!: Whisper[];
+  @OneToMany(() => PlaygroundWhisper, (token) => token.playground)
+  playground_whispers!: PlaygroundWhisper[];
 
-  @OneToMany(() => Vision, (token) => token.thread)
-  visions!: Vision[];
+  @OneToMany(() => PlaygroundVision, (token) => token.playground )
+  playground_visions!: PlaygroundVision[];
 
   // @Column({ type: 'enum', enum: ['ASSISTANT', 'USER'], default: 'ASSISTANT' })
   // responsible!: string;

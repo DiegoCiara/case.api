@@ -39,7 +39,6 @@ export async function SocketEmitController(socketPlatform: Server) {
     }
 
     async function sendMessage(workspaceId: string, threadId: string, userId: string, message: any) {
-      console.log(workspaceId, threadId, userId, message)
       if (!threadId || !threadId || !workspaceId || !uuidValidate(workspaceId) || !userId || !uuidValidate(userId) || !message) {
         if (threadId) {
           returnChatError(threadId)
@@ -67,7 +66,7 @@ export async function SocketEmitController(socketPlatform: Server) {
         returnChatError(threadId)
       };
 
-      const messageOpenai: any = formatMessage(media, text);
+      const messageOpenai: any = await formatMessage(openai, media, text, thread.id, workspace!, 'playground');
 
       await openai.beta.threads.messages.create(thread.id, {
         role: 'user',

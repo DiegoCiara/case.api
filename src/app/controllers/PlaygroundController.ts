@@ -99,8 +99,9 @@ class PlaygroundController {
 
       if (!threadCreated.id) return res.status(400).json({ message: 'Não foi possível criar a thread, tente novamente.' });
 
-      const messageOpenai:any = formatMessage(media, text);
+      const messageOpenai:any = await formatMessage(openai, media, text, thread.id, workspace, 'playground');
 
+      console.log(messageOpenai)
 
       await openai.beta.threads.messages.create(thread.id, {
         role: 'user',
@@ -145,7 +146,9 @@ class PlaygroundController {
 
       if (!thread.id) return res.status(400).json({ message: 'Não foi possível verificar a thread, tente novamente.' });
 
-      const messageOpenai: any = formatMessage(media, text);
+      const messageOpenai: any = formatMessage(openai, media, text, thread.id, workspace, 'playground');
+
+      console.log(messageOpenai)
 
       await openai.beta.threads.messages.create(thread.id, {
         role: 'user',

@@ -1,11 +1,35 @@
-export function formatMessage(media: string, message: string) {
+import Workspace from "@entities/Workspace";
+import { vision } from "@utils/openai/chat/functions/vision/vision";
+import { s3Image } from "@utils/s3";
+import OpenAI from "openai";
+
+import { v4 as uuidv4 } from 'uuid';
+
+export async function formatMessage(openai: OpenAI, media: any, message: string, threadId: string, workspace: Workspace, type: string) {
   if (media) {
+    // Verifica se media é um array, caso contrário, transforma em array
+    const mediaArray = Array.isArray(media) ? media : [media];
+
+    // Aguardar a obtenção do Location para todas as imagens
+    const images = await Promise.all(mediaArray.map(async (e: any) => {
+      const { Location }: any = await s3Image(e, workspace, uuidv4(), threadId);
+      const visions: any = await vision(openai, Location, workspace, threadId, type)
+      console.log(visions)
+      return {
+        type: 'image_url',
+        image_url: {
+          url: Location
+        }
+      };
+    }));
+
+    // Se houver mensagem, retornar imagem + texto, caso contrário apenas a imagem
     return message
       ? [
           { type: 'text', text: message },
-          { type: 'image_url', image_url: { url: media } },
+          ...images
         ]
-      : [{ type: 'image_url', image_url: { url: media } }];
+      : images;
   } else {
     return [{ type: 'text', text: message }];
   }
