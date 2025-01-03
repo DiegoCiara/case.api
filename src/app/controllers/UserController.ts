@@ -8,7 +8,7 @@ import crypto from 'crypto';
 import Workspace from '@entities/Workspace';
 import Access from '@entities/Access';
 import User from '@entities/User';
-import eventEmitter from '@utils/emitter'
+import eventEmitter from '@utils/emitter';
 import { s3 } from '@utils/s3';
 import { log } from '@utils/functions/createLog';
 import { ioSocket } from '@src/socket';
@@ -387,7 +387,7 @@ class UserController {
 
       const { name, email, role, picture }: UserInterface = req.body;
 
-      if (email && !emailValidator(email) || !email) return res.status(400).json({ message: 'Formato de e-mail inválido.' });
+      if ((email && !emailValidator(email)) || !email) return res.status(400).json({ message: 'Formato de e-mail inválido.' });
 
       const user = await Users.findOne(id);
 
@@ -399,23 +399,17 @@ class UserController {
 
       const customer = await updateCustomer(user.customerId, {
         name,
-        email
-      })
-      console.log(customer)
+        email,
+      });
+      console.log(customer);
       let valuesToUpdate: UserInterface;
 
       valuesToUpdate = {
         name: name || user.name,
         email: email || user.email,
-        picture: picture || user.picture,
+        picture: picture || '',
       };
       await Users.update(user.id, { ...valuesToUpdate });
-
-      const access = await Access.findOne({ where: { workspace, user } });
-
-      if (!access) return res.status(404).json({ message: 'Este usuário não faz parte deste workspace.' });
-
-      await Access.update(access.id, { role: role || access!.role });
 
       await log('users', req, 'update', 'success', JSON.stringify({ id: id }), valuesToUpdate);
 
@@ -431,10 +425,10 @@ class UserController {
 
   public async updatePicture(req: Request, res: Response): Promise<Response> {
     try {
-      const { id, userId } = req.params;
+      const { id } = req.params;
 
       const { picture }: UserInterface = req.body;
-      const user = await Users.findOne(userId);
+      const user = await Users.findOne(req.userId);
 
       if (!user) return res.status(404).json({ message: 'Cannot find user' });
 
@@ -449,7 +443,7 @@ class UserController {
 
       if (!location) return res.status(404).json({ message: 'Cannot find workspace' });
 
-      await Users.update(userId, { picture: location });
+      await Users.update(user.id, { picture: location });
       await log('users', req, 'updatePicture', 'success', JSON.stringify({ id: id }), location);
 
       return res.status(200).json();
