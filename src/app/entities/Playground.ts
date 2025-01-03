@@ -28,6 +28,9 @@ class Playground extends BaseEntity {
   @Column()
   threadId!: string;
 
+  @Column()
+  name!: string;
+
   @ManyToOne(() => Workspace, (user) => user.playgrounds)
   @JoinColumn([{ name: 'workspace', referencedColumnName: 'id' }])
   workspace!: Workspace;

@@ -18,6 +18,10 @@ export class createTokenPlayground1631039612333 implements MigrationInterface {
             type: 'uuid',
           },
           {
+            name: 'name',
+            type: 'varchar',
+          },
+          {
             name: 'model',
             type: 'varchar',
           },
