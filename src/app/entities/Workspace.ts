@@ -34,28 +34,28 @@ class Workspace extends BaseEntity {
   name!: string;
 
   @Column()
-  assistantPicture!: string;
-
-  @Column()
-  favicon!: string;
-
-  @Column()
-  logo!: string;
-
-  @Column()
-  logoDark!: string;
-
-  @Column()
-  colorTheme!: string;
-
-  @Column()
-  subscriptionId!: string;
-
-  @Column()
   assistantId!: string;
 
   @Column()
   vectorId!: string;
+
+  @Column()
+  subscriptionId!: string;
+
+  @Column({ nullable: true })
+  assistantPicture!: string;
+
+  @Column({ nullable: true })
+  favicon!: string;
+
+  @Column({ nullable: true })
+  logo!: string;
+
+  @Column({ nullable: true })
+  logoDark!: string;
+
+  @Column()
+  colorTheme!: string;
 
   @OneToMany(() => Token, (token) => token.workspace)
   tokens!: Token[];

@@ -44,6 +44,7 @@ class UserController {
             accessId: access.id,
             name: access.user.name || 'Não cadastrado',
             email: access.user.email,
+            picture: access.user.picture,
             role: access.role,
           };
         })
@@ -163,7 +164,7 @@ class UserController {
   public async findUserById(req: Request, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
-      
+
       const user = await Users.findOne(id);
 
       if (!user) return res.status(404).json({ message: 'Users not exist' });

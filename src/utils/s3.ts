@@ -10,7 +10,7 @@ AWS.config.update({
 });
 
 const bucketName = process.env.AWS_BUCKET_NAME;
-const s3 = new AWS.S3();
+const aws = new AWS.S3();
 
 export async function s3Image(base64: string, workspace: Workspace, id: string, threadId: string) {
   try {
@@ -51,7 +51,7 @@ export async function s3Image(base64: string, workspace: Workspace, id: string, 
     };
 
     // Fazer o upload do arquivo para o bucket S3
-    const s3Response = await s3.upload(params).promise();
+    const s3Response = await aws.upload(params).promise();
 
     return s3Response;
   } catch (error) {
@@ -60,3 +60,23 @@ export async function s3Image(base64: string, workspace: Workspace, id: string, 
   }
 }
 
+
+
+export async function s3(data: any, workspace: Workspace, path: string, object: any, archiveType: string, fileType: string) {
+  try {
+    const params = {
+      Bucket: bucketName!,
+      Key: `workspace:${workspace.id}/${path}/user:${object?.id}/${new Date()}.jpg`, // Nome do arquivo no bucket
+      Body: data,
+      ContentType: `${archiveType}/${fileType}`, // o tipo do arquivo
+    };
+
+    // Fazer o upload do arquivo para o bucket S3
+    const awsResponse = await aws.upload(params).promise();
+
+    return awsResponse.Location;
+  } catch (error) {
+    console.error('Erro ao processar a imagem:', error);
+    throw error;
+  }
+}
