@@ -7,24 +7,25 @@ export async function formatFunctions(workspace: Workspace) {
 
     const functions = integrations.map((e: any) => {
       const properties = e.body.reduce((acc: any, bodyItem: any) => {
-        acc[bodyItem.key] = {
+
+        acc[bodyItem.property] = {
           type: bodyItem.type || 'string', // Tipo dinâmico com fallback para 'string'
           description: bodyItem.description || '', // Descrição, se existir
         };
         return acc;
       }, {});
 
+      const required = e.body.filter((i: any) => i.required === true).map((body: any) => body.property)
+
       const element = {
-        type: 'function',
+        type: "function",
         function: {
           name: e.functionName,
           description: e.description,
           strict: true,
           parameters: {
-            type: 'object',
-            required: e.body
-              .filter((i: any) => i.required === true)
-              .map((body: any) => body.key),
+            type: "object",
+            required,
             properties, // Propriedades dinâmicas geradas
             additionalProperties: false,
           },

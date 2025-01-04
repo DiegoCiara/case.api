@@ -36,7 +36,7 @@ class VectorController {
       await log('vectors', req, 'findById', 'success', JSON.stringify({ id: workspace.vectorId }), workspace.vectorId);
 
       const files = await listFiles(openai, workspace)
-      console.log(files);
+
       return res.status(200).json(files);
     } catch (error) {
       console.log(error);
@@ -93,6 +93,8 @@ class VectorController {
   public async uploadFiles(req: Request, res: Response): Promise<Response> {
     const workspaceId = req.header('workspaceId');
 
+    console.log(workspaceId)
+
     const workspace = await Workspace.findOne(workspaceId);
 
     if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
@@ -120,27 +122,13 @@ class VectorController {
         for (const file of files) {
           const vector = await openai.beta.vectorStores.retrieve(workspace.vectorId);
 
-          console.log(vector);
 
           let totalBytesUsed = vector.usage_bytes;
 
           // Calculando a porcentagem do uso real
           const usagePercentage = (totalBytesUsed / maxStorage) * 100;
 
-          console.log('FILE SIZE', file.size);
-
           const usagePercentageSum = (totalBytesUsed + file.size / maxStorage) * 100;
-
-          console.log({
-            totalBytesUsed: {
-              title: 'Used',
-              bytes: totalBytesUsed,
-            },
-            totalSum: {
-              title: 'sum',
-              bytes: totalBytesUsed + file.size,
-            },
-          });
 
           if (usagePercentage >= 100 && usagePercentageSum >= 100) {
             failed = failed + 1;

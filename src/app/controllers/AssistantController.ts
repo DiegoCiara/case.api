@@ -50,7 +50,7 @@ class WorkspaceController {
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
-      const { name, instructions, temperature } = req.body
+      const { name, instructions, temperature, functions } = req.body
 
       const body = {
         name, instructions, temperature
@@ -59,6 +59,7 @@ class WorkspaceController {
 
       const tools: any = [
         { type: 'file_search' },
+        ...(functions ? functions : []) // Adiciona as funções caso elas
       ];
 
       const assistant = await updateAssistant(openai, workspace.assistantId, body, tools );

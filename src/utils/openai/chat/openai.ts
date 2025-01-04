@@ -42,12 +42,17 @@ export async function mainOpenAI(workspace: Workspace, threadId: string, message
         ];
 
         (await ioSocket).emit(`${type}:${threadId}`);
+        const filters = tools.filter(e => e.type === 'function')
+        const params = filters.flatMap(e => e.function.parameters.required)
+        console.log(params)
 
         const run = await openai.beta.threads.runs.create(threadId, {
           assistant_id: assistant.id,
           instructions: assistant.instructions,
           tools,
         });
+
+        // 106a249f-e57a-4ec5-9981-c65c43d35b96
 
         // (await ioSocket).emit(`processing-playground:${threadId}`);
 
