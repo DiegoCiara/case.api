@@ -24,6 +24,7 @@ interface Body  {
   property: string;
   description: string;
   required: boolean;
+
 }
 
 @Entity({ name: 'integrations' })
@@ -51,7 +52,7 @@ class Integration extends BaseEntity {
   method!: string;
 
   @Column({type: 'jsonb', nullable: true})
-  body!: Body[]; // total em Bytes
+  body!: any[]; // total em Bytes
 
   @Column({type: 'jsonb', nullable: true})
   headers!: Headers[]; // total em Bytes

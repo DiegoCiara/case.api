@@ -36,7 +36,7 @@ class UserController {
 
       if (!workspace) return res.status(404).json({ error: 'Workspace não encontrado' });
 
-      const accesses = await Access.find({ relations: ['user'] });
+      const accesses = await Access.find({ relations: ['user'], where:{ workspace } });
 
       const users: any = await Promise.all(
         accesses.map(async (access: any) => {

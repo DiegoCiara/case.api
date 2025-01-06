@@ -43,7 +43,9 @@ export async function mainOpenAI(workspace: Workspace, threadId: string, message
 
         (await ioSocket).emit(`${type}:${threadId}`);
         const filters = tools.filter(e => e.type === 'function')
-        const params = filters.flatMap(e => e.function.parameters.required)
+        const stringFy = JSON.stringify(filters)
+        console.log(stringFy)
+        const params = filters.flatMap(e => e.function)
         console.log(params)
 
         const run = await openai.beta.threads.runs.create(threadId, {
