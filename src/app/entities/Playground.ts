@@ -12,10 +12,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import Workspace from './Workspace';
-import Token from './Token';
 import User from './User';
-import Whisper from './Whisper';
-import Vision from './Vision';
 import PlaygroundTokens from './PlaygroundToken';
 import PlaygroundVision from './PlaygroundVision';
 import PlaygroundWhisper from './PlaygroundWhisper';

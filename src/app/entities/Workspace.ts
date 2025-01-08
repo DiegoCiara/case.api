@@ -24,6 +24,7 @@ import TokenPlayground from './PlaygroundToken';
 import Playground from './Playground';
 import PlaygroundVision from './PlaygroundVision';
 import PlaygroundWhisper from './PlaygroundWhisper';
+import Document from './Document';
 
 @Entity({ name: 'workspaces' })
 class Workspace extends BaseEntity {
@@ -71,6 +72,9 @@ class Workspace extends BaseEntity {
 
   @OneToMany(() => Thread, (thread) => thread.workspace)
   threads!: Thread[];
+
+  @OneToMany(() => Document, (thread) => thread.workspace)
+  documents!: Document[];
 
   @OneToMany(() => Playground, (thread) => thread.workspace)
   playgrounds!: Playground[];

@@ -29,7 +29,7 @@ class PlaygroundController {
 
       const threads = await Playground.find({ where: { workspace, user } });
       console.log(threads);
-      return res.status(200).json(threads);
+      return res.status(200).json(threads?.reverse());
     } catch (error) {
       return res.status(404).json({ message: 'Cannot find workspaces, try again' });
     }
