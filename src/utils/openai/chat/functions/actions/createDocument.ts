@@ -2,8 +2,9 @@ import Document from '@entities/Document';
 import Log from '@entities/Log';
 import Playground from '@entities/Playground';
 import Workspace from '@entities/Workspace';
+import { ioSocket } from '@src/socket';
 
-export async function createDocument(workspace: Workspace, args: string): Promise<{ status: string; message: string; object: any | null }> {
+export async function createDocument(workspace: Workspace, threadId: string, args: string): Promise<{ status: string; message: string; object: any | null }> {
   console.log('Entrou na action: createDocument');
 
   const body = JSON.parse(args);
@@ -21,6 +22,7 @@ export async function createDocument(workspace: Workspace, args: string): Promis
       };
     }
 
+    (await ioSocket).emit(`document:${threadId}`, document.id)
     return {
       status: 'completed',
       message: `Documento ${name} criado com sucesso.`,

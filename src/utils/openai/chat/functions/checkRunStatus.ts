@@ -79,7 +79,7 @@ export async function checkRun(openai: OpenAI, workspace: Workspace, threadId: s
               if (tool.function.name === 'createDocument') {
                 const args = tool?.function?.arguments;
                 try {
-                  const action = await createDocument(workspace, args);
+                  const action = await createDocument(workspace, threadId, args);
                   let message = action?.message;
                   return {
                     tool_call_id: tool.id,

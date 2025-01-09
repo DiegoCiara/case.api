@@ -23,7 +23,7 @@ class VectorController {
       const documents = await Document.find({ where: { workspace } });
       // const files = await listFiles(openai, workspace)
 
-      return res.status(200).json(documents);
+      return res.status(200).json(documents.reverse());
     } catch (error) {
       console.log(error);
       await log('vectors', req, 'findById', 'failed', JSON.stringify(error), null);
@@ -89,7 +89,6 @@ class VectorController {
   public async deleteBatchFiles(req: Request, res: Response): Promise<Response> {
     try {
       const files = req.body;
-
 
       console.log(files)
       const workspaceId = req.header('workspaceId');
