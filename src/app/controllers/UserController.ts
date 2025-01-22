@@ -402,9 +402,7 @@ class UserController {
         email,
       });
       console.log(customer);
-      let valuesToUpdate: UserInterface;
-
-      valuesToUpdate = {
+      const valuesToUpdate = {
         name: name || user.name,
         email: email || user.email,
         picture: picture || '',

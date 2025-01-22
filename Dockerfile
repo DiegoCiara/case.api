@@ -12,4 +12,4 @@ ARG CLIENT_PORT
 
 EXPOSE ${CLIENT_PORT}
 
-CMD ['npm', 'dev']
+CMD ['npm', 'dev'] 
