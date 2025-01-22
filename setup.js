@@ -80,7 +80,7 @@
     {
       type: 'input',
       name: 'CLIENT_CONNECTION',
-      message: 'Informe a URL de acesso do cliente (CLIENT_CONNECTION), exemplo "https://wave.softspace.com.br":',
+      message: 'Informe a URL de acesso do cliente (CLIENT_CONNECTION), exemplo "https://wave.case.com.br":',
       validate: (input) =>
         !!input ||
         'O CLIENT_CONNECTION não pode ser vazio. Por favor, informe um valor válido.',
@@ -107,7 +107,7 @@ SECRET_WPPCONNECT_SERVER=9dceca71c7caa25c583a1959556faa62\n
 SOCKET_SERVER_URL=https://wppconnect.figio.com.br\n
 WPP_SOCKET_PORT=2345\n
 
-AWS_BUCKET_NAME=softspace-cloud
+AWS_BUCKET_NAME=case-cloud
 
 AWS_ACCESS_KEY_ID=AKIAQMEY5Y2VB2RZOG2M
 

@@ -1,8 +1,8 @@
 {
-  "name": "softspace.api",
+  "name": "case.api",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "git@github.com:DiegoCiara/softspace.api.git",
+  "repository": "git@github.com:DiegoCiara/case.api.git",
   "license": "MIT",
   "engines": {
     "node": ">=20.11.1"
@@ -101,3 +101,4 @@
     "typescript": "^5.4.5"
   }
 }
+

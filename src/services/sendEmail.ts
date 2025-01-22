@@ -1,6 +1,6 @@
-const nodemailer = require('nodemailer');
-const handlebars = require('handlebars');
-const fs = require('fs');
+import nodemailer from 'nodemailer';
+import handlebars from 'handlebars';
+import fs from 'fs';
 import transport from '@src/modules/mailer';
 
 function sendMail(html: string, from: string, subject: string, body: any) {
@@ -13,7 +13,7 @@ function sendMail(html: string, from: string, subject: string, body: any) {
     transport.sendMail(
       {
         to: body.email,
-        from: `Softspace BR <${from}@softspace.com.br>`,
+        from: `Case BR <${from}@case.com.br>`,
         subject: subject, // assunto do email
         html: htmlToSend,
       },

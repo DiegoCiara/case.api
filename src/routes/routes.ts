@@ -17,7 +17,7 @@ const env = process.env.TEST_BASE;
 
 const dev = env === 'DEV';
 
-const base = dev ? { 'Softspace Development': 'Online' } : { 'Softspace Platform': 'Online' };
+const base = dev ? { 'Case Development': 'Online' } : { 'Softspace Platform': 'Online' };
 
 routes.get('/', (req, res) => {
   res.json(base);
