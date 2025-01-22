@@ -36,7 +36,7 @@ class UserController {
 
       if (!workspace) return res.status(404).json({ error: 'Workspace não encontrado' });
 
-      const accesses = await Access.find({ relations: ['user'], where:{ workspace } });
+      const accesses = await Access.find({ relations: ['user'], where: { workspace } });
 
       const users: any = await Promise.all(
         accesses.map(async (access: any) => {
@@ -279,13 +279,11 @@ class UserController {
 
       if (!workspace) return res.status(404).json({ message: 'Cannot find Workspace' });
 
-      const { email, role }: UserInterface = req.body;
+      const { name, email, role, password }: UserInterface = req.body;
 
       if (!id || !email || !emailValidator(email)) return res.status(400).json({ message: 'Invalid values for new Users!' });
 
       const findUser = await Users.findOne({ email });
-
-      const password = generatePassword();
 
       const userName = '';
 
@@ -293,7 +291,7 @@ class UserController {
 
       const token = crypto.randomBytes(20).toString('hex'); // token que será enviado via email.
 
-      const passwordHash = await bcrypt.hash(password, 10);
+      const passwordHash = await bcrypt.hash(password!, 10);
 
       const now = new Date();
       now.setHours(now.getHours() + 1);
@@ -313,13 +311,18 @@ class UserController {
 
           eventEmitter.emit(`accessPlayground`, findUser.id);
 
-          await sendMail('inviteUser.html', 'acesso', `Bem vindo ${userName}`, { client, name: '', email, password, id });
+          // await sendMail('inviteUser.html', 'acesso', `Bem vindo ${userName}`, { client, name: '', email, password, id });
           return res.status(201).json(findUser.id);
         }
       } else {
+        const customer = await createCustomer({ name, email });
+
+        if(!customer) return res.status(409).json({ message: 'Não foi possível criar o usuário' });
+
         const user = await Users.create({
-          name: '',
+          name,
           email,
+          customerId: customer.id,
           passwordHash,
           passwordResetToken: token,
           passwordResetExpires: now,
@@ -508,4 +511,3 @@ class UserController {
 }
 
 export default new UserController();
-
