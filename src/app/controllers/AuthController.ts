@@ -7,7 +7,7 @@ import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
 import emailValidator from '@utils/emailValidator';
 
-dotenv.config();
+dotenv.config();  
 
 interface UserInterface {
   name: string;
