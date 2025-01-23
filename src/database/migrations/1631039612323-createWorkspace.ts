@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 
-export class createDeclaration1631039612323 implements MigrationInterface {
+export class createWorkspace1631039612323 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'declarations',
+        name: 'workspaces',
         columns: [
           {
             name: 'id',
@@ -14,32 +14,44 @@ export class createDeclaration1631039612323 implements MigrationInterface {
             generationStrategy: 'uuid',
           },
           {
-            name: 'year',
+            name: 'subscriptionId',
             type: 'varchar',
           },
           {
-            name: 'values',
-            type: 'jsonb',
+            name: 'assistantId',
+            type: 'varchar',
           },
           {
-            name: 'status',
-            type: 'enum',
-            enum: ['UNSUBMITED', 'SUBMITED'],
-            default: `'UNSUBMITED'`,
+            name: 'vectorId',
+            type: 'varchar',
           },
           {
-            name: 'user',
-            type: 'uuid',
+            name: 'name',
+            type: 'varchar',
           },
           {
-            name: 'rectified',
-            type: 'uuid',
+            name: 'favicon',
+            type: 'varchar',
             isNullable: true
           },
           {
-            name: 'has_rectified',
-            type: 'boolean',
-            default: false
+            name: 'logo',
+            type: 'varchar',
+            isNullable: true
+          },
+          {
+            name: 'logoDark',
+            type: 'varchar',
+            isNullable: true
+          },
+          {
+            name: 'assistantPicture',
+            type: 'varchar',
+            isNullable: true
+          },
+          {
+            name: 'colorTheme',
+            type: 'varchar',
           },
           {
             name: 'createdAt',
@@ -59,25 +71,10 @@ export class createDeclaration1631039612323 implements MigrationInterface {
         ],
       })
     );
-    await queryRunner.createForeignKey(
-      'declarations',
-      new TableForeignKey({
-        columnNames: ['user'],
-        referencedTableName: 'users',
-        referencedColumnNames: ['id'],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'declarations',
-      new TableForeignKey({
-        columnNames: ['rectified'],
-        referencedTableName: 'declarations',
-        referencedColumnNames: ['id'],
-      })
-    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('declarations');
+    await queryRunner.dropTable('workspaces');
   }
 }
+

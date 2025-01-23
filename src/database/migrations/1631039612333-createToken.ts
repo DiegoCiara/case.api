@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 
-export class createUser1631039612322 implements MigrationInterface {
+export class createToken1631039612333 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'users',
+        name: 'tokens',
         columns: [
           {
             name: 'id',
@@ -14,49 +14,36 @@ export class createUser1631039612322 implements MigrationInterface {
             generationStrategy: 'uuid',
           },
           {
-            name: 'picture',
-            type: 'varchar',
-            isNullable: true,
+            name: 'workspace',
+            type: 'uuid',
           },
           {
-            name: 'name',
-            type: 'varchar',
-          },
-          {
-            name: 'email',
+            name: 'model',
             type: 'varchar',
           },
           {
-            name: 'customer_id',
-            type: 'varchar',
+            name: 'thread',
+            type: 'uuid',
           },
           {
-            name: 'password_hash',
-            type: 'varchar',
+            name: 'total_tokens',
+            type: 'float',
           },
           {
-            name: 'token_reset_password',
-            type: 'varchar',
-            isNullable: true,
+            name: 'completion_tokens',
+            type: 'float',
           },
           {
-            name: 'reset_password_expires',
-            type: 'varchar',
-            isNullable: true,
+            name: 'prompt_tokens',
+            type: 'float',
           },
           {
-            name: 'secret',
-            type: 'varchar',
+            name: 'input',
+            type: 'jsonb',
           },
           {
-            name: 'token_reset_secret',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'has_configured_2fa',
-            type: 'boolean',
-            default: false,
+            name: 'output',
+            type: 'jsonb',
           },
           {
             name: 'createdAt',
@@ -76,9 +63,26 @@ export class createUser1631039612322 implements MigrationInterface {
         ],
       })
     );
+    await queryRunner.createForeignKey(
+      'tokens',
+      new TableForeignKey({
+        columnNames: ['workspace'],
+        referencedTableName: 'workspaces',
+        referencedColumnNames: ['id'],
+      })
+    );
+    await queryRunner.createForeignKey(
+      'tokens',
+      new TableForeignKey({
+        columnNames: ['thread'],
+        referencedTableName: 'threads',
+        referencedColumnNames: ['id'],
+      })
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('users');
+    await queryRunner.dropTable('tokens');
   }
 }
+

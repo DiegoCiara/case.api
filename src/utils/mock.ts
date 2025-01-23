@@ -13,8 +13,8 @@ const mocks = async (): Promise<void> => {
       console.log('Mocks ok');
       return;
     }
-     
 
+    
 
   } catch (error) {
     console.log('Erro ao rodar mocks!', error);

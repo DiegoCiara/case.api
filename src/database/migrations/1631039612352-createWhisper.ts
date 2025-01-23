@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 
-export class createUser1631039612322 implements MigrationInterface {
+export class createWhisper1631039612352 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'users',
+        name: 'whispers',
         columns: [
           {
             name: 'id',
@@ -14,49 +14,24 @@ export class createUser1631039612322 implements MigrationInterface {
             generationStrategy: 'uuid',
           },
           {
-            name: 'picture',
-            type: 'varchar',
-            isNullable: true,
+            name: 'workspace',
+            type: 'uuid',
           },
           {
-            name: 'name',
-            type: 'varchar',
+            name: 'thread',
+            type: 'uuid',
           },
           {
-            name: 'email',
-            type: 'varchar',
-          },
-          {
-            name: 'customer_id',
+            name: 's3Location',
             type: 'varchar',
           },
           {
-            name: 'password_hash',
+            name: 'duration',
             type: 'varchar',
           },
           {
-            name: 'token_reset_password',
+            name: 'output',
             type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'reset_password_expires',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'secret',
-            type: 'varchar',
-          },
-          {
-            name: 'token_reset_secret',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'has_configured_2fa',
-            type: 'boolean',
-            default: false,
           },
           {
             name: 'createdAt',
@@ -76,9 +51,26 @@ export class createUser1631039612322 implements MigrationInterface {
         ],
       })
     );
+    await queryRunner.createForeignKey(
+      'whispers',
+      new TableForeignKey({
+        columnNames: ['workspace'],
+        referencedTableName: 'workspaces',
+        referencedColumnNames: ['id'],
+      })
+    );
+    await queryRunner.createForeignKey(
+      'whispers',
+      new TableForeignKey({
+        columnNames: ['thread'],
+        referencedTableName: 'threads',
+        referencedColumnNames: ['id'],
+      })
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('users');
+    await queryRunner.dropTable('whispers');
   }
 }
+

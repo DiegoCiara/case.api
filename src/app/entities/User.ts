@@ -4,11 +4,15 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import Declaration from './Declaration';
+import Access from './Access';
+import Thread from './Thread';
 
 @Entity({ name: 'users' })
 class User extends BaseEntity {
@@ -22,16 +26,35 @@ class User extends BaseEntity {
   email!: string;
 
   @Column()
-  passwordHash!: string;
+  customer_id!: string;
+
+
+  @Column({ nullable: true })
+  picture!: string;
 
   @Column()
+  password_hash!: string;
+
+  @Column({ nullable: true })
+  token_reset_password!: string;
+
+  @Column({ nullable: true, type: 'timestamp' })
+  reset_password_expires!: Date;
+
+  @Column({ nullable: true })
   secret!: string;
 
-  @Column({ default: false })
-  has_configured!: boolean;
+  @Column({ nullable: true })
+  token_reset_secret!: string;
 
-  @OneToMany(() => Declaration, (access) => access.user)
-  declarations!: Declaration[];
+  @Column({ default: false })
+  has_configured_2fa!: boolean;
+
+  @OneToMany(() => Access, (access) => access.user)
+  accesses!: Access[];
+
+  @OneToMany(() => Thread, (workspace) => workspace.user)
+  threads!: Thread[];
 
   @CreateDateColumn()
   createdAt!: Date;

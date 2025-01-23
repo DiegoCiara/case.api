@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 
-export class createUser1631039612322 implements MigrationInterface {
+export class createDocument1631039612355 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'users',
+        name: 'documents',
         columns: [
           {
             name: 'id',
@@ -14,49 +14,20 @@ export class createUser1631039612322 implements MigrationInterface {
             generationStrategy: 'uuid',
           },
           {
-            name: 'picture',
-            type: 'varchar',
-            isNullable: true,
+            name: 'workspace',
+            type: 'uuid',
           },
           {
             name: 'name',
             type: 'varchar',
           },
           {
-            name: 'email',
+            name: 'description',
             type: 'varchar',
           },
           {
-            name: 'customer_id',
+            name: 'content',
             type: 'varchar',
-          },
-          {
-            name: 'password_hash',
-            type: 'varchar',
-          },
-          {
-            name: 'token_reset_password',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'reset_password_expires',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'secret',
-            type: 'varchar',
-          },
-          {
-            name: 'token_reset_secret',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'has_configured_2fa',
-            type: 'boolean',
-            default: false,
           },
           {
             name: 'createdAt',
@@ -76,9 +47,18 @@ export class createUser1631039612322 implements MigrationInterface {
         ],
       })
     );
+    await queryRunner.createForeignKey(
+      'documents',
+      new TableForeignKey({
+        columnNames: ['workspace'],
+        referencedTableName: 'workspaces',
+        referencedColumnNames: ['id'],
+      })
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('users');
+    await queryRunner.dropTable('documents');
   }
 }
+

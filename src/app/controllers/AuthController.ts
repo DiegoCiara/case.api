@@ -2,12 +2,12 @@ import User from '@entities/User';
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
-import { generateToken } from '@utils/generateToken';
+import { generateToken } from '@utils/functions/generateToken';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
-import emailValidator from '@utils/emailValidator';
+import emailValidator from '@utils/functions/emailValidator';
 
-dotenv.config();  
+dotenv.config();
 
 interface UserInterface {
   name: string;
@@ -82,7 +82,7 @@ class AuthController {
         return;
       }
 
-      if (!(await bcrypt.compare(password, user.passwordHash))) {
+      if (!(await bcrypt.compare(password, user.password_hash))) {
         res.status(401).json({ message: 'Senha inválida.' });
         return;
       }
@@ -91,7 +91,7 @@ class AuthController {
         id: user.id,
         email: user.email,
         name: user.name,
-        has_configured: user.has_configured,
+        has_configured_2fa: user.has_configured_2fa,
       });
     } catch (error) {
       console.error(error);
@@ -219,13 +219,13 @@ class AuthController {
 
       if (verified) {
         const token = generateToken({ id: user.id });
-        await User.update(user.id, { has_configured: true });
+        await User.update(user.id, { has_configured_2fa: true });
         res.status(200).json({
           user: {
             id: user.id,
             name: user.name,
             email: user.email,
-            has_configured: user.has_configured,
+            has_configured: user.has_configured_2fa,
           },
           token: token,
         });
