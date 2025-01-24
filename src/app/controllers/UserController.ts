@@ -9,11 +9,13 @@ import Workspace from '@entities/Workspace';
 import Access from '@entities/Access';
 import sendMail from '@src/services/sendEmail';
 import { getInitialName } from '@utils/functions/getInitialName';
+import { createCustomer } from '@utils/stripe/customer/createCustomer';
 
 interface UserInterface {
   id?: string;
   name: string;
   email: string;
+  picture?: string;
   token: string;
   password: string;
   secret?: string;
@@ -40,30 +42,30 @@ class UserController {
    *         description: ID do workspace
    *         schema:
    *           type: string
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         description: ID do usuário
-   *         schema:
-   *           type: string
    *     responses:
    *       200:
-   *         description: Usuário encontrado
+   *         description: Lista de usuários
    *         content:
    *           application/json:
    *             schema:
-   *               type: object
-   *               properties:
-   *                 id:
-   *                   type: string
-   *                 name:
-   *                   type: string
-   *                 email:
-   *                   type: string
+   *               type: array
+   *               items:
+   *                 type: object
+   *                 properties:
+   *                   accessId:
+   *                     type: string
+   *                   name:
+   *                     type: string
+   *                   email:
+   *                     type: string
+   *                   picture:
+   *                     type: string
+   *                   role:
+   *                     type: string
    *       400:
    *         description: ID do workspace não informado
    *       404:
-   *         description: Usuário não encontrado
+   *         description: Workspace não encontrado
    *       500:
    *         description: Erro interno
    */
@@ -74,7 +76,7 @@ class UserController {
       if (!workspaceId) {
         res
           .status(400)
-          .json({ message: 'Porfavor, informe o ID do seu workspace.' });
+          .json({ message: 'Por favor, informe o ID do seu workspace.' });
         return;
       }
 
@@ -115,7 +117,8 @@ class UserController {
    * @swagger
    * /user/{id}:
    *   get:
-   *     summary: Retorna o usuário procurado pelo ID, é necessário ser o próprio usuário para executar a requisição.
+   *     summary: Retorna o usuário procurado pelo ID
+   *     description: Este endpoint deve ser utilizado pelo próprio usuário para buscar suas informações.
    *     tags: [Usuários]
    *     parameters:
    *       - in: path
@@ -167,7 +170,7 @@ class UserController {
    * @swagger
    * /user/access/{id}:
    *   get:
-   *     summary: Retorna o acesso do usuário procurado pelo ID do usuário
+   *     summary: Retorna o acesso do usuário ao workspace procurado pelo ID
    *     tags: [Usuários]
    *     parameters:
    *       - in: header
@@ -184,28 +187,22 @@ class UserController {
    *           type: string
    *     responses:
    *       200:
-   *         description: Usuário encontrado
+   *         description: Acesso do usuário encontrado
    *         content:
    *           application/json:
    *             schema:
    *               type: object
    *               properties:
-   *                 id:
-   *                   type: string
    *                 name:
    *                   type: string
    *                 email:
    *                   type: string
+   *                 role:
+   *                   type: string
    *       400:
-   *         description: ID do workspace não informado
+   *         description: ID do workspace ou usuário não informado
    *       404:
-   *         description: Usuário não encontrado
-   *       400:
-   *         description: ID do usuário não informado
-   *       404:
-   *         description: Usuário não encontrado
-   *       404:
-   *         description: Acesso do usuário para esse workspace não encontrado
+   *         description: Usuário ou acesso não encontrado
    *       500:
    *         description: Erro interno
    */
@@ -216,7 +213,7 @@ class UserController {
       if (!workspaceId) {
         res
           .status(400)
-          .json({ message: 'Porfavor, informe o ID do seu workspace.' });
+          .json({ message: 'Por favor, informe o ID do seu workspace.' });
         return;
       }
 
@@ -236,7 +233,7 @@ class UserController {
 
       const user = await Users.findOne(id, {
         select: ['id', 'name', 'email', 'createdAt', 'accesses'],
-        relations: ['acesses'],
+        relations: ['accesses'],
       });
 
       if (!user) {
@@ -268,51 +265,52 @@ class UserController {
         .json({ error: 'Erro interno ao buscar usuário, tente novamente.' });
     }
   }
-/**
- * @swagger
- * /user:
- *   post:
- *     summary: Cria um novo usuário
- *     tags: [Usuários]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               email:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       201:
- *         description: Usuário criado com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 user:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                     name:
- *                       type: string
- *                     email:
- *                       type: string
- *                 message:
- *                   type: string
- *       400:
- *         description: Valores inválidos para o novo usuário
- *       409:
- *         description: Usuário já existe
- *       500:
- *         description: Erro interno ao criar o usuário
- */
+
+  /**
+   * @swagger
+   * /user:
+   *   post:
+   *     summary: Cria um novo usuário
+   *     tags: [Usuários]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               name:
+   *                 type: string
+   *               email:
+   *                 type: string
+   *               password:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: Usuário criado com sucesso
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 user:
+   *                   type: object
+   *                   properties:
+   *                     id:
+   *                       type: string
+   *                     name:
+   *                       type: string
+   *                     email:
+   *                       type: string
+   *                 message:
+   *                   type: string
+   *       400:
+   *         description: Valores inválidos para o novo usuário
+   *       409:
+   *         description: Usuário já existe
+   *       500:
+   *         description: Erro interno ao criar o usuário
+   */
   public async create(req: Request, res: Response): Promise<void> {
     try {
       const { name, email, password }: UserInterface = req.body;
@@ -339,9 +337,22 @@ class UserController {
         name: `Case AI: ${email}`,
       });
 
+      const customer = await createCustomer({
+        name,
+        email,
+      });
+
+      if (!customer) {
+        res.status(400).json({
+          message: 'Não foi possível criar o usuário cliente, tente novamente',
+        });
+        return;
+      }
+
       const user = await Users.create({
         name,
         email,
+        customer_id: customer.id,
         password_hash,
         secret: secret.base32,
       }).save();
@@ -359,17 +370,16 @@ class UserController {
           name: user.name,
           email: user.email,
         },
-        messsage: 'Usuário criado com sucesso',
+        message: 'Usuário criado com sucesso',
       });
     } catch (error) {
       console.error(error);
       res
         .status(500)
-        .json({ error: 'Erro interno no registro, tente novamente.' });
+        .json({ message: 'Erro interno no registro, tente novamente.' , error: error });
     }
   }
 
-  /**
   /**
    * @swagger
    * /user/invite:
@@ -394,7 +404,7 @@ class UserController {
    *                 type: string
    *     responses:
    *       201:
-   *         description: Usuário criado com sucesso
+   *         description: Convite enviado com sucesso
    *         content:
    *           application/json:
    *             schema:
@@ -402,13 +412,12 @@ class UserController {
    *               properties:
    *                 message:
    *                   type: string
-   *
    *       400:
    *         description: Valores inválidos para o novo usuário
-   *       409:
-   *         description: Usuário já existe
+   *       404:
+   *         description: Workspace não encontrado
    *       500:
-   *         description: Erro interno ao criar o usuário
+   *         description: Erro interno ao enviar o convite
    */
   public async invite(req: Request, res: Response): Promise<void> {
     try {
@@ -417,7 +426,7 @@ class UserController {
       if (!workspaceId) {
         res
           .status(400)
-          .json({ message: 'Porfavor, informe o ID do seu workspace.' });
+          .json({ message: 'Por favor, informe o ID do seu workspace.' });
         return;
       }
 
@@ -440,7 +449,7 @@ class UserController {
       const user = await Users.findOne(req.userId);
 
       if (!user) {
-        res.status(409).json({
+        res.status(404).json({
           message: 'Usuário não encontrado',
         });
         return;
@@ -491,6 +500,8 @@ class UserController {
    *                 type: string
    *               email:
    *                 type: string
+   *               picture:
+   *                 type: string
    *     responses:
    *       204:
    *         description: Usuário atualizado com sucesso
@@ -503,7 +514,7 @@ class UserController {
    */
   public async update(req: Request, res: Response): Promise<void> {
     try {
-      const { name, email }: UserInterface = req.body;
+      const { name, email, picture }: UserInterface = req.body;
 
       if (email && !emailValidator(email)) {
         res.status(400).json({ message: 'Formato de e-mail inválido.' });
@@ -520,6 +531,7 @@ class UserController {
       const valuesToUpdate = {
         name: name || user.name,
         email: email || user.email,
+        picture: picture || user.picture,
       };
 
       await Users.update(user.id, { ...valuesToUpdate });
@@ -532,17 +544,24 @@ class UserController {
       });
     }
   }
+
   /**
    * @swagger
-   * /user/{id}:
+   * /user/role/{id}:
    *   put:
-   *     summary: Atualiza os dados de um usuário
+   *     summary: Atualiza um acesso de um usuário
    *     tags: [Usuários]
    *     parameters:
    *       - in: path
    *         name: id
    *         required: true
-   *         description: ID do usuário a ser atualizado
+   *         description: ID do acesso a ser atualizado
+   *         schema:
+   *           type: string
+   *       - in: header
+   *         name: workspaceId
+   *         required: true
+   *         description: ID do workspace
    *         schema:
    *           type: string
    *     requestBody:
@@ -552,33 +571,29 @@ class UserController {
    *           schema:
    *             type: object
    *             properties:
-   *               name:
-   *                 type: string
-   *               email:
+   *               role:
    *                 type: string
    *     responses:
    *       204:
-   *         description: Usuário atualizado com sucesso
+   *         description: Permissão atualizada com sucesso
    *       400:
-   *         description: ID de acesso não informado
-   *       400:
-   *         description: Permissão não informada
+   *         description: ID de acesso ou permissão não informado
    *       404:
    *         description: Acesso não encontrado
    *       500:
-   *         description: Erro interno ao atualizar a permissão do acesso
+   *         description: Erro interno ao atualizar o usuário
    */
   public async updateRole(req: Request, res: Response): Promise<void> {
     try {
       const id = req.params.id;
 
-      if (id) {
+      if (!id) {
         res.status(400).json({ message: 'ID de acesso não informado' });
         return;
       }
       const { role } = req.body;
 
-      if (role) {
+      if (!role) {
         res.status(400).json({ message: 'Permissão não informada' });
         return;
       }
@@ -597,6 +612,125 @@ class UserController {
       console.error(error);
       res.status(500).json({
         message: 'Erro interno ao atualizar o usuário, tente novamente.',
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /user/update-password/{id}:
+   *   put:
+   *     summary: Atualiza a senha de um usuário
+   *     description: Este endpoint deve ser utilizado pelo próprio usuário.
+   *     tags: [Usuários]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         description: ID do usuário a ser atualizado
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               oldPassword:
+   *                 type: string
+   *               newPassword:
+   *                 type: string
+   *     responses:
+   *       204:
+   *         description: Senha atualizada com sucesso
+   *       400:
+   *         description: Valores inválidos para redefinir a senha
+   *       404:
+   *         description: Usuário não encontrado
+   *       500:
+   *         description: Erro interno ao atualizar a senha
+   */
+  public async updatePassword(req: Request, res: Response): Promise<void> {
+    try {
+      const id = req.params.id;
+
+      if (!id) {
+        res.status(400).json({ message: 'ID de usuário não informado' });
+        return;
+      }
+
+      const { oldPassword, newPassword } = req.body;
+
+      if (!oldPassword || !newPassword) {
+        res.status(400).json({ message: 'Valores inválidos para redefinir a senha' });
+        return;
+      }
+
+      // Aqui você deve adicionar a lógica para verificar a senha antiga e atualizar para a nova senha
+
+      res.status(204).send({ message: 'Senha atualizada com sucesso' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        message: 'Erro interno ao atualizar a senha, tente novamente.',
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /user/{id}:
+   *   delete:
+   *     summary: Remove o acesso de um usuário a um workspace
+   *     description: Este endpoint deve ser utilizado pelo administrador ou proprietário do workspace.
+   *     tags: [Usuários]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         description: ID do acesso a ser removido
+   *         schema:
+   *           type: string
+   *       - in: header
+   *         name: workspaceId
+   *         required: true
+   *         description: ID do workspace
+   *         schema:
+   *           type: string
+   *     responses:
+   *       204:
+   *         description: Acesso removido com sucesso
+   *       400:
+   *         description: ID de acesso ou workspace não informado
+   *       404:
+   *         description: Acesso não encontrado
+   *       500:
+   *         description: Erro interno ao remover o acesso
+   */
+  public async removeAccess(req: Request, res: Response): Promise<void> {
+    try {
+      const id = req.params.id;
+
+      if (!id) {
+        res.status(400).json({ message: 'ID de acesso não informado' });
+        return;
+      }
+
+      const workspaceId = req.header('workspaceId');
+
+      if (!workspaceId) {
+        res.status(400).json({ message: 'ID do workspace não informado' });
+        return;
+      }
+
+      // Aqui você deve adicionar a lógica para remover o acesso do usuário ao workspace
+
+      res.status(204).send({ message: 'Acesso removido com sucesso' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        message: 'Erro interno ao remover o acesso, tente novamente.',
       });
     }
   }

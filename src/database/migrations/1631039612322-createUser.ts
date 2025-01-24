@@ -49,7 +49,7 @@ export class createUser1631039612322 implements MigrationInterface {
             type: 'varchar',
           },
           {
-            name: 'token_reset_secret',
+            name: 'token_auth_secret',
             type: 'varchar',
             isNullable: true,
           },

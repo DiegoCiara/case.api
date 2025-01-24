@@ -6,6 +6,7 @@ import { generateToken } from '@utils/functions/generateToken';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
 import emailValidator from '@utils/functions/emailValidator';
+import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ interface UserInterface {
   token: string;
   password: string;
   secret?: string;
+  tempToken?: string
 }
 /**
  * @swagger
@@ -87,6 +89,14 @@ class AuthController {
         return;
       }
 
+      const jwtSecret = process.env.SECRET;
+      // Gerar um token de autenticação  temporário que expira em 5 minutos
+      const tempToken = jwt.sign({ email: user.email }, jwtSecret!, {
+        expiresIn: '5m',
+      });
+
+      await User.update(user.id, { token_auth_secret: tempToken });
+
       res.status(200).json({
         id: user.id,
         email: user.email,
@@ -137,21 +147,35 @@ class AuthController {
         return;
       }
 
+      if (!user.token_auth_secret) {
+        res.status(404).json({
+          message: 'Token de autenticação de 2 fatores não encontrado, faça o login e tente novamente.',
+        });
+        return;
+      }
+      const jwtSecret = process.env.SECRET;
+      // Verificar o token temporário
+      try {
+        jwt.verify(user.token_auth_secret, jwtSecret!);
+      } catch (err) {
+        res.status(401).json({ message: 'Token de autenticação de 2 fatores expirado ou inválido, faça o login novamente.' });
+        return;
+      }
+
       const secret = speakeasy.otpauthURL({
         secret: user.secret,
         label: `IR Simulator: ${user.email}`,
         encoding: 'base32',
       });
 
-      const qrCodeUrl = await qrcode.toDataURL(secret!);
+      const data = await qrcode.toDataURL(secret!);
 
-      res.status(200).json(qrCodeUrl);
+      res.status(200).json({ qr_code: data, message: 'Este QR code expira em 5 minutos' });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Erro ao gerar o QR Code.' });
     }
   }
-
   /**
    * @swagger
    * /auth/2fa/verify:
@@ -190,6 +214,7 @@ class AuthController {
    *       500:
    *         description: Erro interno na verificação
    */
+
   public async verifySecret(req: Request, res: Response): Promise<void> {
     try {
       const { email, secret }: UserInterface = req.body;
@@ -210,6 +235,16 @@ class AuthController {
         return;
       }
 
+      const jwtSecret = process.env.SECRET;
+      // Verificar o token temporário
+      try {
+        jwt.verify(user.token_auth_secret, jwtSecret!);
+      } catch (err) {
+        res.status(401).json({ message: 'Token de autenticação de 2 fatores expirado ou inválido, faça o login novamente.' });
+        return;
+      }
+
+
       const verified = speakeasy.totp.verify({
         secret: user.secret,
         encoding: 'base32',
@@ -219,7 +254,7 @@ class AuthController {
 
       if (verified) {
         const token = generateToken({ id: user.id });
-        await User.update(user.id, { has_configured_2fa: true });
+        await User.update(user.id, { has_configured_2fa: true, token_auth_secret: undefined });
         res.status(200).json({
           user: {
             id: user.id,
@@ -230,7 +265,6 @@ class AuthController {
           token: token,
         });
       } else {
-        console.log(verified);
         res
           .status(401)
           .json({ message: 'Código inválido, verifique o código informado.' });

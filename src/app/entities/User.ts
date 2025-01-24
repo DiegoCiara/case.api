@@ -45,7 +45,7 @@ class User extends BaseEntity {
   secret!: string;
 
   @Column({ nullable: true })
-  token_reset_secret!: string;
+  token_auth_secret!: string; 
 
   @Column({ default: false })
   has_configured_2fa!: boolean;
