@@ -17,12 +17,14 @@
     "build": "npx tsc && tsc-alias"
   },
   "dependencies": {
+    "@types/amqplib": "^0.10.6",
     "@types/nodemailer": "^6.4.17",
     "@types/nodemailer-express-handlebars": "^4.0.5",
     "@types/qrcode": "^1.5.5",
     "@types/speakeasy": "^2.0.10",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.7",
+    "amqplib": "^0.10.5",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -34,6 +36,7 @@
     "openai": "^4.80.0",
     "pg": "^8.7.1",
     "qrcode": "^1.5.4",
+    "socket.io": "^4.8.1",
     "speakeasy": "^2.0.0",
     "stripe": "^17.5.0",
     "swagger-jsdoc": "^6.2.8",
@@ -41,6 +44,7 @@
     "tsc-alias": "^1.8.8",
     "typeorm": "0.2.37",
     "typeorm-express-query-builder": "^1.5.0",
+    "uuid": "^11.0.5",
     "yarn": "^1.22.11"
   },
   "devDependencies": {
