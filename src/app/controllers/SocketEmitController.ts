@@ -1,5 +1,4 @@
 import { Server } from 'socket.io';
-import { io } from 'socket.io-client';
 import dotenv from 'dotenv';
 import Workspace from '@entities/Workspace';
 import User from '@entities/User';
@@ -11,18 +10,12 @@ import { processQueue } from '@utils/rabbitMq/proccess';
 
 dotenv.config();
 
-const SOCKET_SERVER_URL = process.env.SOCKET_SERVER_URL as string;
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
 });
 
 export async function SocketEmitController(socketPlatform: Server) {
-  const wppconnect = io(SOCKET_SERVER_URL);
-  // await startPeriodicProcessing();
-  wppconnect.on('connect', () => {
-    console.log('Socket WPP Conectado');
-  });
 
   socketPlatform.on('connect', async (socket) => {
     console.log('Usuário conectado');
@@ -63,7 +56,7 @@ export async function SocketEmitController(socketPlatform: Server) {
         returnChatError(threadId)
         return
       }
-      
+
       const messageOpenai: any = await formatMessage(openai, media, text, thread.id, workspace, 'playground');
 
       await openai.beta.threads.messages.create(thread.id, {

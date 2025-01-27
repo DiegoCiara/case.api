@@ -13,29 +13,33 @@ const openai = new OpenAI({
 });
 
 class WorkspaceController {
-  public async findWorkspace(req: Request, res: Response): Promise<Response> {
+  public async findWorkspace(req: Request, res: Response): Promise<void> {
     try {
       const workspaceId = req.header('workspaceId');
 
       const workspace = await Workspace.findOne(workspaceId);
 
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
-
+      if (!workspace) {
+        res.status(404).json({ message: 'Workspace não encontrado' });
+        return;
+      }
       const subscription = await listSubscription(workspace.subscriptionId);
 
-      return res.status(200).json({ ...workspace, subscription });
+      res.status(200).json({ ...workspace, subscription });
     } catch (error) {
-      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+      res.status(404).json({ message: 'Cannot find workspaces, try again' });
     }
   }
-  public async findWorkspaces(req: Request, res: Response): Promise<Response> {
+  public async findWorkspaces(req: Request, res: Response): Promise<void> {
     try {
       const id = req.userId;
 
       const user = await User.findOne(id, { relations: ['accesses', 'accesses.workspace'] });
 
-      if (!user) return res.status(404).json({ message: 'user não encontrado' });
-
+      if (!user) {
+        res.status(404).json({ message: 'user não encontrado' });
+        return;
+      }
       const workspaces = user.accesses.flatMap((e) => e.workspace);
 
       const assistants: any = await Promise.all(
@@ -51,23 +55,28 @@ class WorkspaceController {
         })
       );
 
-      return res.status(200).json(assistants);
+      res.status(200).json(assistants);
     } catch (error) {
       console.error(error);
-      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+      res.status(404).json({ message: 'Cannot find workspaces, try again' });
     }
   }
-  public async updateWorkspace(req: Request, res: Response): Promise<any> {
+  public async updateWorkspace(req: Request, res: Response): Promise<void> {
     try {
       const workspaceId = req.header('workspaceId');
 
       const workspace = await Workspace.findOne(workspaceId);
 
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado.' });
-
+      if (!workspace) {
+        res.status(404).json({ message: 'Workspace não encontrado.' });
+        return;
+      }
       const { name, logo, logoDark, favicon, subscriptionId } = req.body;
 
-      if (!name) return res.status(404).json({ message: 'Informe um nome para seu workspace.' });
+      if (!name) {
+        res.status(404).json({ message: 'Informe um nome para seu workspace.' });
+        return;
+      }
 
       const update = await Workspace.update(workspace.id, {
         name,
@@ -77,27 +86,32 @@ class WorkspaceController {
         subscriptionId,
       });
 
-      return res.status(200).json({});
+      res.status(200).json({});
     } catch (error) {
       console.error(error);
-      return res.status(404).json({ message: 'Algo deu errado, tente novamente.' });
+      res.status(404).json({ message: 'Algo deu errado, tente novamente.' });
     }
   }
-  public async createWorkspace(req: Request, res: Response): Promise<any> {
+  public async createWorkspace(req: Request, res: Response): Promise<void> {
     try {
-
       const { name, priceId, paymentMethodId } = req.body;
 
-      if (!name) return res.status(404).json({ message: 'Informe um nome para seu workspace.' });
+      if (!name) {
+        res.status(404).json({ message: 'Informe um nome para seu workspace.' });
+        return;
+      }
+      const user = await User.findOne(req.userId);
 
-      const user = await User.findOne(req.userId)
+      if (!user) {
+        res.status(404).json({ message: 'Usuário não encontrado.' });
+        return;
+      }
+      const subscription = await createSubscription(user.customer_id, priceId, paymentMethodId);
 
-      if(!user)return res.status(404).json({ message: 'Usuário não encontrado.' });
-
-      const subscription = await createSubscription(user.customer_id, priceId, paymentMethodId)
-
-      if(!subscription?.id)return res.status(400).json({ message: 'Não foi possível realizar a assinatura, altere o método de pagamento e tente novamente.' });
-
+      if (!subscription?.id) {
+        res.status(400).json({ message: 'Não foi possível realizar a assinatura, altere o método de pagamento e tente novamente.' });
+        return;
+      }
       const vector = await openai.beta.vectorStores.create({
         name: 'Base de conhecimento',
       });
@@ -118,22 +132,22 @@ class WorkspaceController {
         colorTheme: generateColor(),
       }).save();
 
-
       const access = await Access.create({
         user,
         workspace,
-        role: 'OWNER'
-      }).save()
+        role: 'OWNER',
+      }).save();
 
-      if(!access) return res.status(400).json({ message: 'Ocorreu um erro ao criar seu acesso ao workspace, tente novamente.' });
-
-      return res.status(200).json(workspace);
+      if (!access) {
+        res.status(400).json({ message: 'Ocorreu um erro ao criar seu acesso ao workspace, tente novamente.' });
+        return;
+      }
+      res.status(200).json(workspace);
     } catch (error) {
       console.error(error);
-      return res.status(404).json({ message: 'Algo deu errado, tente novamente.' });
+      res.status(404).json({ message: 'Algo deu errado, tente novamente.' });
     }
   }
 }
 
 export default new WorkspaceController();
-

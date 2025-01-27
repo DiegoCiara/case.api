@@ -2,9 +2,7 @@
 declare module 'mediainfo-wrapper' {
   export default function mediaInfo(filePath: string): Promise<any>;
 }// custom-types.d.ts
-declare module 'probe-image-size' {
-  export default function probe(imageS3Location: string): Promise<any>;
-}
+
 declare module 'probe-image-size' {
   export default function probe(imageS3Location: string): Promise<any>;
 }

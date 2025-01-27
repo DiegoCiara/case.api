@@ -2,9 +2,7 @@ import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import Workspace from '@entities/Workspace';
 import { checkRun, getActiveRun } from './functions/checkRunStatus';
-import { decrypt } from '@utils/encrypt/encrypt';
 import { token } from '@utils/functions/createToken';
-import { Message } from 'openai/resources/beta/threads/messages';
 import { formatFunctions } from '../management/functions/formatFunctions';
 import { ioSocket } from '@src/socket';
 

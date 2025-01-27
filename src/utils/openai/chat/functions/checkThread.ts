@@ -1,6 +1,5 @@
 import Workspace from '@entities/Workspace';
 import Thread from '@entities/Thread';
-import { decrypt } from '@utils/encrypt/encrypt';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({

@@ -16,9 +16,14 @@ export async function processQueue(queue: string, type: string) {
       if (msg !== null) {
         const payload = JSON.parse(msg.content.toString());
         const object = JSON.parse(payload);
-        console.log('payload object parsed', object, typeof object);
+
         const { workspaceId, messages, threadId } = object;
         const workspace = await Workspace.findOne(workspaceId, { relations: ['integrations'] });
+
+        if(!workspace) {
+          channel.ack(msg);
+          return;
+        }
 
         const message = await mainOpenAI(workspace, threadId, messages, type);
 

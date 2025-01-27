@@ -1,10 +1,11 @@
-import multer from 'multer';
+import multer, { StorageEngine } from 'multer';
+import { Request } from 'express';
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // ajuste conforme necessário
+const storage: StorageEngine = multer.diskStorage({
+  destination: (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void): void => {
+    cb(null, 'uploads/'); // Adjust as necessary
   },
-  filename: (req, file, cb) => {
+  filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void): void => {
     cb(null, `${file.originalname}`);
   },
 });
@@ -12,7 +13,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: {
-    fileSize: Infinity, // Define sem limite para o tamanho do arquivo
+    fileSize: Infinity,
   },
 });
 

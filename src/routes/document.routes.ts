@@ -1,14 +1,12 @@
-
 import Router from 'express';
 import DocumentController from '@src/app/controllers/DocumentController';
+import { ensureAuthenticated } from '@middlewares/ensureAuthenticated';
 
 const routes = Router();
 
-routes.get('/', DocumentController.findAll);
-routes.get('/:id', DocumentController.findById);
-// routes.get('/:id', DocumentController.fileById);
-routes.post('/batch/', DocumentController.deleteBatchFiles);
-routes.delete('/:id', DocumentController.deleteFile);
-
+routes.get('/', ensureAuthenticated, DocumentController.findAll);
+routes.get('/:id', ensureAuthenticated, DocumentController.findById);
+routes.post('/batch/', ensureAuthenticated, DocumentController.deleteBatchFiles);
+routes.delete('/:id', ensureAuthenticated, DocumentController.deleteFile);
 
 export default routes;
