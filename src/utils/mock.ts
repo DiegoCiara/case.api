@@ -47,7 +47,7 @@ const mocks = async (): Promise<void> => {
 
     const pass = await bcrypt.hash(user.password, 10);
 
-    const newUser = await User.create({ ...user, customerId: customer.id, passwordHash: pass }).save();
+    const newUser = await User.create({ ...user, customer_id: customer.id, password_hash: pass }).save();
 
     console.log(`Usuário ${newUser.name} criado`);
 

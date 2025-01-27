@@ -1,18 +1,9 @@
 import Workspace from '@entities/Workspace';
 import { Request, Response } from 'express';
-import { log } from '@utils/functions/createLog';
-import AWS from 'aws-sdk';
-import OpenAI from 'openai';
-import fs from 'fs';
 import { ioSocket } from '@src/socket';
-import { listFiles } from '@utils/openai/management/vector/listFiles';
 import Integration from '@entities/Integration';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_KEY,
-});
 
-const s3 = new AWS.S3();
 class VectorController {
   public async findById(req: Request, res: Response): Promise<Response> {
     try {
@@ -31,12 +22,10 @@ class VectorController {
       if (!integration) return res.status(404).json({ message: 'Integração não encontrada' });
 
       console.log(integration);
-      await log('vectors', req, 'findById', 'success', JSON.stringify({ id: id }), id);
 
       return res.status(200).json(integration);
     } catch (error) {
       console.log(error);
-      await log('vectors', req, 'findById', 'failed', JSON.stringify(error), null);
       return res.status(404).json({ message: 'Cannot find groups, try again' });
     }
   }
@@ -48,12 +37,9 @@ class VectorController {
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
-      await log('vectors', req, 'findById', 'success', JSON.stringify({ id: workspace.vectorId }), workspace.vectorId);
-
       return res.status(200).json(workspace.integrations);
     } catch (error) {
       console.log(error);
-      await log('vectors', req, 'findById', 'failed', JSON.stringify(error), null);
       return res.status(404).json({ message: 'Cannot find groups, try again' });
     }
   }
@@ -78,7 +64,6 @@ class VectorController {
       return res.status(200).json(integration);
     } catch (error) {
       console.error(error);
-      await log('uploadFiles', req, 'uploadFiles', 'failed', JSON.stringify(error), null);
       return res.status(500).json({ message: 'Falha ao criar integração, tente novamente.' });
     }
   }
@@ -111,7 +96,6 @@ class VectorController {
       return res.status(200).json(integration);
     } catch (error) {
       console.error(error);
-      await log('uploadFiles', req, 'uploadFiles', 'failed', JSON.stringify(error), null);
       return res.status(500).json({ message: 'Falha ao criar integração, tente novamente.' });
     }
   }
@@ -138,14 +122,11 @@ class VectorController {
 
       await Integration.softRemove(integration);
 
-      await log('files', req, 'integration', 'success', JSON.stringify(id), { file: integration.id, integration: integration.id });
-
       (await ioSocket).emit(`integration:${workspace.id}`);
 
       return res.status(200).json({ message: 'File integration successfully' });
     } catch (error) {
       console.error(error);
-      await log('files', req, 'delete', 'failed', JSON.stringify(error), null);
       return res.status(500).json({ error: 'Delete failed, try again' });
     }
   }
@@ -182,14 +163,11 @@ class VectorController {
         }
       }
 
-      await log('files', req, 'delete', 'success', JSON.stringify(workspaceId), { workspaceId });
-
       (await ioSocket).emit(`integration:${workspace.id}`);
 
       return res.status(200).json({ completed: completed, failed: failed });
     } catch (error) {
       console.error(error);
-      await log('files', req, 'delete', 'failed', JSON.stringify(error), null);
       return res.status(500).json({ error: 'Delete jjj, try again' });
     }
   }

@@ -1,26 +1,8 @@
-import axios from 'axios';
 import { Request, Response } from 'express';
-import { type } from 'os';
 import Workspace from '@entities/Workspace';
-import { io } from '@src/socket';
-import Thread from '@entities/Thread';
-import { encrypt } from '@utils/encrypt/encrypt';
 import OpenAI from 'openai';
-import { createCustomer } from '@utils/stripe/customer/createCustomer';
-import { listInvoices } from '@utils/stripe/invoices/listInvoices';
-import { listPaymentMethods } from '@utils/stripe/customer/listPaymentMethods';
-import { createPaymentIntent, setPaymentMethodAsDefault } from '@utils/stripe/customer/createPaymentMethod';
-import { deleteMethod } from '@utils/stripe/customer/deletePaymentMethod';
-import { listSubscription } from '@utils/stripe/subscriptions/listSubscription';
-import currency from 'currency.js';
-import { listPlans } from '@utils/stripe/products/listPlans';
-import User from '@entities/User';
-import { updateSubscription } from '@utils/stripe/subscriptions/updateSubscription';
-import { findPlan } from '@utils/stripe/products/findPlan';
 import { retrieveAssistant } from '@utils/openai/management/assistants/retrieveAssistant';
-import { token } from '@utils/functions/createToken';
 import { updateAssistant } from '@utils/openai/management/assistants/updateAssistant';
-import { FunctionTool } from 'openai/resources/beta/assistants';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,

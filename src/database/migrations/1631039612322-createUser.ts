@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export class createUser1631039612322 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -14,8 +14,9 @@ export class createUser1631039612322 implements MigrationInterface {
             generationStrategy: 'uuid',
           },
           {
-            name: 'customerId',
+            name: 'picture',
             type: 'varchar',
+            isNullable: true,
           },
           {
             name: 'name',
@@ -26,33 +27,36 @@ export class createUser1631039612322 implements MigrationInterface {
             type: 'varchar',
           },
           {
-            name: 'hasResetPass',
+            name: 'customer_id',
+            type: 'varchar',
+          },
+          {
+            name: 'password_hash',
+            type: 'varchar',
+          },
+          {
+            name: 'token_reset_password',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'reset_password_expires',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'secret',
+            type: 'varchar',
+          },
+          {
+            name: 'token_auth_secret',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'has_configured_2fa',
             type: 'boolean',
-            isNullable: true
-          },
-          {
-            name: 'passwordHash',
-            type: 'varchar',
-          },
-          {
-            name: 'picture',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'notifyEnabled',
-            type: 'boolean',
-            default: true,
-          },
-          {
-            name: 'passwordResetToken',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'passwordResetExpires',
-            type: 'varchar',
-            isNullable: true,
+            default: false,
           },
           {
             name: 'createdAt',

@@ -13,7 +13,7 @@ export async function formatMessage(openai: OpenAI, media: any, message: string,
     // Aguardar a obtenção do Location para todas as imagens
     const images = await Promise.all(mediaArray.map(async (e: any) => {
       const { Location }: any = await s3Image(e, workspace, uuidv4(), threadId);
-      const visions: any = await vision(openai, Location, workspace, threadId, type)
+      const visions: any = await vision(openai, Location, workspace, threadId)
       console.log(visions)
       return {
         type: 'image_url',

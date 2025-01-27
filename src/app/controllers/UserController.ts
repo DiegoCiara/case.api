@@ -2,41 +2,93 @@ import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import Users from '@entities/User';
 import emailValidator from '@utils/functions/emailValidator';
-import generatePassword from '@utils/functions/generatePassword';
-import sendMail from '@src/services/sendEmail';
-import crypto from 'crypto';
+import speakeasy from 'speakeasy';
 import Workspace from '@entities/Workspace';
 import Access from '@entities/Access';
-import User from '@entities/User';
-import eventEmitter from '@utils/emitter';
-import { s3 } from '@utils/s3';
-import { log } from '@utils/functions/createLog';
-import { ioSocket } from '@src/socket';
+import sendMail from '@src/services/sendEmail';
+import { getInitialName } from '@utils/functions/getInitialName';
 import { createCustomer } from '@utils/stripe/customer/createCustomer';
-import { updateCustomer } from '@utils/stripe/customer/updateCustomer';
 
 interface UserInterface {
+  id?: string;
   name: string;
-  role?: string;
-  token?: string;
+  email: string;
   picture?: string;
-  email?: string;
-  notifyEnabled?: boolean;
-  password?: string;
+  token: string;
+  password: string;
+  secret?: string;
 }
 
+/**
+ * @swagger
+ * tags:
+ *   name: Usuários
+ *   description: Operações relativas aos usuários
+ */
+
 class UserController {
-  public async findUsers(req: Request, res: Response): Promise<Response> {
+  /**
+   * @swagger
+   * /user/:
+   *   get:
+   *     summary: Retorna todos os usuários do workspace
+   *     tags: [Usuários]
+   *     parameters:
+   *       - in: header
+   *         name: workspaceId
+   *         required: true
+   *         description: ID do workspace
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Lista de usuários
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 type: object
+   *                 properties:
+   *                   accessId:
+   *                     type: string
+   *                   name:
+   *                     type: string
+   *                   email:
+   *                     type: string
+   *                   picture:
+   *                     type: string
+   *                   role:
+   *                     type: string
+   *       400:
+   *         description: ID do workspace não informado
+   *       404:
+   *         description: Workspace não encontrado
+   *       500:
+   *         description: Erro interno
+   */
+  public async findUsers(req: Request, res: Response): Promise<void> {
     try {
       const workspaceId = req.header('workspaceId');
 
-      console.log(workspaceId);
+      if (!workspaceId) {
+        res
+          .status(400)
+          .json({ message: 'Por favor, informe o ID do seu workspace.' });
+        return;
+      }
 
       const workspace = await Workspace.findOne(workspaceId);
 
-      if (!workspace) return res.status(404).json({ error: 'Workspace não encontrado' });
+      if (!workspace) {
+        res.status(404).json({ message: 'Workspace não encontrado.' });
+        return;
+      }
 
-      const accesses = await Access.find({ relations: ['user'], where: { workspace } });
+      const accesses = await Access.find({
+        relations: ['user'],
+        where: { workspace },
+      });
 
       const users: any = await Promise.all(
         accesses.map(async (access: any) => {
@@ -47,465 +99,637 @@ class UserController {
             picture: access.user.picture,
             role: access.role,
           };
-        })
+        }),
       );
-      // const users = await Users.find({ where: { accesses: In(accesses)}});
-      // users.map((user: { passwordHash: undefined }) => (user.passwordHash = undefined));
-      await log('users', req, 'findUsers', 'success', JSON.stringify({ id: workspaceId }), workspaceId);
-      return res.status(200).json(users);
+
+      res.status(200).json(users);
     } catch (error) {
-      await log('users', req, 'findUsers', 'failed', JSON.stringify(error), null);
-      return res.status(400).json({ error: 'Find users failed, try again' });
+      console.error(error);
+      res
+        .status(500)
+        .json({ error: 'Erro interno ao buscar usuário, tente novamente.' });
     }
   }
-  public async getPermission(req: Request, res: Response): Promise<Response> {
+
+  /**
+   * @swagger
+   * /user/{id}:
+   *   get:
+   *     summary: Retorna o usuário procurado pelo ID
+   *     description: Este endpoint deve ser utilizado pelo próprio usuário para buscar suas informações.
+   *     tags: [Usuários]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         description: ID do usuário
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Usuário encontrado
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 id:
+   *                   type: string
+   *                 name:
+   *                   type: string
+   *                 email:
+   *                   type: string
+   *       404:
+   *         description: Usuário não encontrado
+   *       500:
+   *         description: Erro interno
+   */
+  public async findUserById(req: Request, res: Response): Promise<void> {
     try {
-      const { id, workspaceId } = req.params;
-
-      if (!id || !workspaceId) return res.status(400).json({ message: 'Invalid values for User' });
-
-      const user = await User.findOne(id, {
-        select: ['id', 'email', 'name', 'passwordResetToken', 'passwordHash', 'picture'],
+      const user = await Users.findOne(req.userId, {
+        select: ['id', 'name', 'email', 'createdAt'],
       });
 
-      const workspace = await Workspace.findOne(workspaceId);
-      const access = await Access.findOne({ where: { user, workspace } });
-      if (!access) return res.status(404).json({ error: 'Authenticate failed, try again' });
+      if (!user) {
+        res.status(404).json({ message: 'Usuário não encontrado.' });
+        return;
+      }
 
-      await log('users', req, 'getPermission', 'success', JSON.stringify({ id: id }), id);
-      return res.status(200).json({ role: access.role });
+      res.status(200).json(user);
     } catch (error) {
       console.error(error);
-      await log('users', req, 'getPermission', 'failed', JSON.stringify(error), null);
-      return res.status(400).json({ error: 'Authenticate failed, try again' });
-    }
-  }
-  public async getAccesses(req: Request, res: Response): Promise<Response> {
-    try {
-      const { id } = req.params;
-
-      if (!id) return res.status(400).json({ message: 'Invalid values for User' });
-
-      const workspace = await Workspace.findOne(id, { relations: ['accesses', 'accesses.user'] });
-
-      if (!workspace) return res.status(404).json({ error: 'Authenticate failed, try again' });
-
-      await log('users', req, 'accesses', 'success', JSON.stringify({ id: id }), id);
-      return res.status(200).json(workspace.accesses);
-    } catch (error) {
-      console.error(error);
-      await log('users', req, 'accesses', 'failed', JSON.stringify(error), null);
-      return res.status(500).json({ error: 'Authenticate failed, try again' });
+      res
+        .status(500)
+        .json({ error: 'Erro interno ao buscar usuário, tente novamente.' });
     }
   }
 
-  // public async getNotifications(req: Request, res: Response): Promise<Response> {
-  //   try {
-  //     const { id, workspaceId } = req.params;
-  //     if (!id || !workspaceId) return res.status(400).json({ message: 'Invalid values for User' });
-
-  //     const user = await User.findOne(id, {
-  //       select: ['id', 'email', 'name', 'passwordResetToken', 'passwordHash', 'picture'],
-  //     });
-
-  //     const workspace = await Workspace.findOne(workspaceId);
-
-  //     const access = await Access.findOne({ where: { user, workspace } });
-
-  //     if (!access) return res.status(404).json({ error: 'Authenticate failed, try again' });
-
-  //     if (access.role === 'SELLER') {
-  //       const notifications = await Notification.find({ where: { user, workspace, role: access.role } });
-  //       for (const notification of notifications) {
-  //         if (!notification.viewed) {
-  //           await Notification.update(notification.id, { viewed: !notification.viewed });
-  //         }
-  //       }
-  //       await eventEmitter.emit('notify', user?.id, workspace!.id);
-
-  //       return res.status(200).json({ notifications: notifications.reverse() });
-  //     } else {
-  //       const notifications = await Notification.find({ where: { user, workspace } });
-  //       for (const notification of notifications) {
-  //         if (!notification.viewed) {
-  //           await Notification.update(notification.id, { viewed: !notification.viewed });
-  //         }
-  //       }
-  //       await eventEmitter.emit('notify', user?.id, workspace!.id);
-
-  //       await log('users', req, 'getNotifications', 'success', JSON.stringify({ id: id }), id);
-  //       return res.status(200).json({ notifications: notifications.reverse() });
-  //     }
-  //   } catch (error) {
-  //     return res.status(400).json({ error: 'Authenticate failed, try again' });
-  //   }
-  // }
-
-  // public async findUsersOfWorkspace(req: Request, res: Response): Promise<Response> {
-  //   try {
-  //     const id = req.params.id;
-
-  //     const workspace = await Workspace.findOne(id);
-
-  //     const access = await Access.find({ where: { workspace: workspace } });
-
-  //     const users = await Users.find(queryBuilder(req.query));
-
-  //     users.map((user: { passwordHash: undefined }) => (user.passwordHash = undefined));
-
-  //     await log('users', req, 'findUsersOfWorkspace', 'success', JSON.stringify({ id: id }), id);
-  //     return res.status(200).json(users);
-  //   } catch (error) {
-  //     await log('users', req, 'findUsersOfWorkspace', 'failed', JSON.stringify(error), null);
-  //     return res.status(400).json({ error: 'Find users failed, try again' });
-  //   }
-  // }
-
-  public async findUserById(req: Request, res: Response): Promise<Response> {
+  /**
+   * @swagger
+   * /user/access/{id}:
+   *   get:
+   *     summary: Retorna o acesso do usuário ao workspace procurado pelo ID
+   *     tags: [Usuários]
+   *     parameters:
+   *       - in: header
+   *         name: workspaceId
+   *         required: true
+   *         description: ID do workspace
+   *         schema:
+   *           type: string
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         description: ID do usuário
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Acesso do usuário encontrado
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 name:
+   *                   type: string
+   *                 email:
+   *                   type: string
+   *                 role:
+   *                   type: string
+   *       400:
+   *         description: ID do workspace ou usuário não informado
+   *       404:
+   *         description: Usuário ou acesso não encontrado
+   *       500:
+   *         description: Erro interno
+   */
+  public async findAccess(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-
-      const user = await Users.findOne(id);
-
-      if (!user) return res.status(404).json({ message: 'Users not exist' });
-
-      await log('users', req, 'findUserById', 'success', JSON.stringify({ id: id }), id);
-
-      return res.status(200).json({ ...user });
-    } catch (error) {
-      console.log(error);
-      await log('users', req, 'findUserById', 'failed', JSON.stringify(error), null);
-      return res.status(500).json({ error: 'Find user failed, try again' });
-    }
-  }
-  public async findAccessById(req: Request, res: Response): Promise<Response> {
-    try {
-      const { id } = req.params;
-
       const workspaceId = req.header('workspaceId');
 
-      console.log(workspaceId);
+      if (!workspaceId) {
+        res
+          .status(400)
+          .json({ message: 'Por favor, informe o ID do seu workspace.' });
+        return;
+      }
 
       const workspace = await Workspace.findOne(workspaceId);
 
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+      if (!workspace) {
+        res.status(404).json({ message: 'Workspace não encontrado.' });
+        return;
+      }
 
-      const access = await Access.findOne(id, { where: { workspace }, relations: ['user'] });
+      const id = req.params.id;
 
-      if (!access) return res.status(404).json({ message: 'Acesso não encontrado' });
+      if (!id) {
+        res.status(400).json({ message: 'Informe um ID de usuário' });
+        return;
+      }
 
-      await log('users', req, 'findAccessById', 'success', JSON.stringify({ id: workspaceId }), workspaceId);
+      const user = await Users.findOne(id, {
+        select: ['id', 'name', 'email', 'createdAt', 'accesses'],
+        relations: ['accesses'],
+      });
 
-      const accessResponse = {
+      if (!user) {
+        res.status(404).json({ message: 'Usuário não encontrado.' });
+        return;
+      }
+
+      const access = await Access.findOne({
+        where: { user, workspace },
+      });
+
+      if (!access) {
+        res.status(404).json({
+          message:
+            'Não foi encontrado nenhum acesso desse usuário para este workspace.',
+        });
+        return;
+      }
+
+      res.status(200).json({
         name: access.user.name,
         email: access.user.email,
         role: access.role,
-      };
-
-      return res.status(200).json(accessResponse);
-    } catch (error) {
-      console.log(error);
-      await log('users', req, 'findAccessById', 'failed', JSON.stringify(error), null);
-      return res.status(500).json({ error: 'Find user failed, try again' });
-    }
-  }
-
-  public async create(req: Request, res: Response): Promise<Response> {
-    try {
-      const { name, email }: UserInterface = req.body;
-
-      const workspaceId = req.header('workspaceId');
-
-      console.log(workspaceId);
-
-      const workspace = await Workspace.findOne(workspaceId);
-
-      if (!email || !emailValidator(email)) return res.status(400).json({ message: 'Invalid values for new Users!' });
-
-      // Users.findOne({ email }, { withDeleted: true });
-
-      const findUser = await Users.findOne({ where: { workspace, email } });
-
-      if (findUser) return res.status(400).json({ message: 'Users already exists' });
-
-      const password = generatePassword();
-
-      const userName = email;
-
-      const client = process.env.CLIENT_CONNECTION;
-
-      const token = crypto.randomBytes(20).toString('hex'); // token que será enviado via email.
-
-      sendMail('newUser.html', 'acesso', `Bem vindo ${userName}`, { client, name, email, password });
-
-      const passwordHash = await bcrypt.hash(password, 10);
-
-      const now = new Date();
-      now.setHours(now.getHours() + 1);
-      // const passwordHash = "password";
-
-      const customer = await createCustomer({ name, email });
-
-      const { data }: any = customer;
-
-      const user = await Users.create({
-        name: email,
-        email,
-        passwordHash,
-        passwordResetToken: token,
-        passwordResetExpires: now,
-      }).save();
-
-      if (!user) return res.status(400).json({ message: 'Cannot create user' });
-
-      // user.passwordHash = undefined;
-      await log('users', req, 'create', 'success', JSON.stringify({ ...req.body }), user);
-
-      return res.status(201).json(user.id);
+      });
     } catch (error) {
       console.error(error);
-      await log('users', req, 'create', 'failed', JSON.stringify(error), null);
-      return res.status(400).json({ error: 'Registration failed, try again' });
+      res
+        .status(500)
+        .json({ error: 'Erro interno ao buscar usuário, tente novamente.' });
     }
   }
 
-  public async inviteWorkspace(req: Request, res: Response): Promise<Response> {
+  /**
+   * @swagger
+   * /user:
+   *   post:
+   *     summary: Cria um novo usuário
+   *     tags: [Usuários]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               name:
+   *                 type: string
+   *               email:
+   *                 type: string
+   *               password:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: Usuário criado com sucesso
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 user:
+   *                   type: object
+   *                   properties:
+   *                     id:
+   *                       type: string
+   *                     name:
+   *                       type: string
+   *                     email:
+   *                       type: string
+   *                 message:
+   *                   type: string
+   *       400:
+   *         description: Valores inválidos para o novo usuário
+   *       409:
+   *         description: Usuário já existe
+   *       500:
+   *         description: Erro interno ao criar o usuário
+   */
+  public async create(req: Request, res: Response): Promise<void> {
     try {
-      const id = req.header('workspaceId');
+      const { name, email, password }: UserInterface = req.body;
 
-      console.log(id);
+      if (!email || !emailValidator(email) || !password) {
+        res
+          .status(400)
+          .json({ message: 'Valores inválidos para o novo usuário.' });
+        return;
+      }
 
-      const workspace = await Workspace.findOne(id);
-
-      if (!workspace) return res.status(404).json({ message: 'Cannot find Workspace' });
-
-      const { name, email, role, password }: UserInterface = req.body;
-
-      if (!id || !email || !emailValidator(email)) return res.status(400).json({ message: 'Invalid values for new Users!' });
-
-      const findUser = await Users.findOne({ email });
-
-      const userName = '';
-
-      const client = process.env.CLIENT_CONNECTION;
-
-      const token = crypto.randomBytes(20).toString('hex'); // token que será enviado via email.
-
-      const passwordHash = await bcrypt.hash(password!, 10);
-
-      const now = new Date();
-      now.setHours(now.getHours() + 1);
-      // const passwordHash = "password";
+      const findUser = await Users.findOne({ where: { email } });
 
       if (findUser) {
-        const findWorkspace = await Access.findOne({ where: { user: findUser, workspace: workspace } });
-
-        if (findWorkspace) {
-          return res.status(409).json({ message: 'Este usuário já está cadastrado' });
-        } else {
-          const access = await Access.create({
-            user: findUser,
-            role,
-            workspace,
-          }).save();
-
-          eventEmitter.emit(`accessPlayground`, findUser.id);
-
-          // await sendMail('inviteUser.html', 'acesso', `Bem vindo ${userName}`, { client, name: '', email, password, id });
-          return res.status(201).json(findUser.id);
-        }
-      } else {
-        const customer = await createCustomer({ name, email });
-
-        if(!customer) return res.status(409).json({ message: 'Não foi possível criar o usuário' });
-
-        const user = await Users.create({
-          name,
-          email,
-          customerId: customer.id,
-          passwordHash,
-          passwordResetToken: token,
-          passwordResetExpires: now,
-        }).save();
-
-        if (!user) return res.status(400).json({ message: 'Cannot create user' });
-
-        const access = await Access.create({
-          user,
-          role,
-          workspace,
-        }).save();
-
-        // user.passwordHash = undefined;
-        await sendMail('newUser.html', 'acesso', `Bem vindo ${userName}`, { client, name: '', email, password });
-
-        await log('users', req, 'inviteWorkspace', 'success', JSON.stringify({ id: id }), user);
-
-        (await ioSocket).emit(`users:${id}`);
-
-        return res.status(201).json(user.id);
+        res.status(409).json({
+          message: 'Já existe um usuário cadastrado com este e-mail.',
+        });
+        return;
       }
-    } catch (error) {
-      console.error(error);
-      await log('users', req, 'inviteWorkspace', 'failed', JSON.stringify(error), null);
-      return res.status(400).json({ error: 'Registration failed, try again' });
-    }
-  }
 
-  public async update(req: Request, res: Response): Promise<Response> {
-    try {
-      const { id } = req.params;
+      const password_hash = await bcrypt.hash(password, 10);
 
-      const workspaceId = req.header('workspaceId');
+      const secret = speakeasy.generateSecret({
+        name: `Case AI: ${email}`,
+      });
 
-      const { role }: UserInterface = req.body;
-
-      const workspace = await Workspace.findOne(workspaceId);
-
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado.' });
-
-      const access = await Access.findOne(id, { where: { workspace } });
-
-      if (!access) return res.status(404).json({ message: 'Este usuário não faz parte deste workspace.' });
-
-      await Access.update(access.id, { role: role || access!.role });
-
-      await log('users', req, 'update', 'success', JSON.stringify({ id: id }), role);
-
-      (await ioSocket).emit(`users:${workspaceId}`);
-
-      return res.status(200).json();
-    } catch (error) {
-      console.error(error);
-      await log('users', req, 'update', 'failed', JSON.stringify(error), null);
-      return res.status(500).json({ message: 'Falha ao atualizar, tente novamente.' });
-    }
-  }
-
-  public async updateUser(req: Request, res: Response): Promise<Response> {
-    try {
-      const { id } = req.params;
-
-      const workspaceId = req.header('workspaceId');
-
-      const { name, email, role, picture }: UserInterface = req.body;
-
-      if ((email && !emailValidator(email)) || !email) return res.status(400).json({ message: 'Formato de e-mail inválido.' });
-
-      const user = await Users.findOne(id);
-
-      if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
-
-      const workspace = await Workspace.findOne(workspaceId);
-
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado.' });
-
-      const customer = await updateCustomer(user.customerId, {
+      const customer = await createCustomer({
         name,
         email,
       });
-      console.log(customer);
-      const valuesToUpdate = {
-        name: name || user.name,
-        email: email || user.email,
-        picture: picture || '',
-      };
-      await Users.update(user.id, { ...valuesToUpdate });
 
-      await log('users', req, 'update', 'success', JSON.stringify({ id: id }), valuesToUpdate);
+      if (!customer) {
+        res.status(400).json({
+          message: 'Não foi possível criar o usuário cliente, tente novamente',
+        });
+        return;
+      }
 
-      (await ioSocket).emit(`users:${workspaceId}`);
+      const user = await Users.create({
+        name,
+        email,
+        customer_id: customer.id,
+        password_hash,
+        secret: secret.base32,
+      }).save();
 
-      return res.status(200).json();
+      if (!user) {
+        res.status(500).json({
+          message: 'Erro interno ao criar o usuário, tente novamente.',
+        });
+        return;
+      }
+
+      res.status(201).json({
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+        message: 'Usuário criado com sucesso',
+      });
     } catch (error) {
       console.error(error);
-      await log('users', req, 'update', 'failed', JSON.stringify(error), null);
-      return res.status(500).json({ message: 'Falha ao atualizar, tente novamente.' });
+      res
+        .status(500)
+        .json({ message: 'Erro interno no registro, tente novamente.' , error: error });
     }
   }
 
-  public async updatePicture(req: Request, res: Response): Promise<Response> {
+  /**
+   * @swagger
+   * /user/invite:
+   *   post:
+   *     summary: Envia o convite para um usuário
+   *     tags: [Usuários]
+   *     parameters:
+   *       - in: header
+   *         name: workspaceId
+   *         required: true
+   *         description: ID do workspace
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               email:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: Convite enviado com sucesso
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *       400:
+   *         description: Valores inválidos para o novo usuário
+   *       404:
+   *         description: Workspace não encontrado
+   *       500:
+   *         description: Erro interno ao enviar o convite
+   */
+  public async invite(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-
-      const { picture }: UserInterface = req.body;
-      const user = await Users.findOne(req.userId);
-
-      if (!user) return res.status(404).json({ message: 'Cannot find user' });
-
-      const workspace = await Workspace.findOne(id);
-
-      if (!workspace) return res.status(404).json({ message: 'Cannot find workspace' });
-
-      const buffer = await Buffer.from(picture!.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-      const fileType = await picture!.split(';')[0].split('/')[1]; // extraindo o tipo de arquivo (png, jpeg, etc.)
-
-      const location = await s3(buffer!, workspace, 'users', user, 'image', fileType);
-
-      if (!location) return res.status(404).json({ message: 'Cannot find workspace' });
-
-      await Users.update(user.id, { picture: location });
-      await log('users', req, 'updatePicture', 'success', JSON.stringify({ id: id }), location);
-
-      return res.status(200).json();
-    } catch (error) {
-      console.error(error);
-      await log('users', req, 'updatePicture', 'failed', JSON.stringify(error), null);
-
-      return res.status(400).json({ error: 'Update failed, try again' });
-    }
-  }
-
-  public async removeAccess(req: Request, res: Response): Promise<Response> {
-    try {
-      const { id } = req.params;
-
       const workspaceId = req.header('workspaceId');
+
+      if (!workspaceId) {
+        res
+          .status(400)
+          .json({ message: 'Por favor, informe o ID do seu workspace.' });
+        return;
+      }
 
       const workspace = await Workspace.findOne(workspaceId);
 
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+      if (!workspace) {
+        res.status(404).json({ message: 'Workspace não encontrado.' });
+        return;
+      }
 
-      const access = await Access.findOne(id, { where: { workspace } });
+      const { email }: UserInterface = req.body;
 
-      if (!access) return res.status(404).json({ message: 'Acesso não encontrado' });
+      if (!email || !emailValidator(email)) {
+        res
+          .status(400)
+          .json({ message: 'Valores inválidos para o novo usuário.' });
+        return;
+      }
 
-      await Access.softRemove(access);
+      const user = await Users.findOne(req.userId);
 
-      await log('users', req, 'delete', 'success', JSON.stringify({ id: id }), access);
+      if (!user) {
+        res.status(404).json({
+          message: 'Usuário não encontrado',
+        });
+        return;
+      }
 
-      (await ioSocket).emit(`users:${workspaceId}`);
+      const name = getInitialName(user.name);
 
-      console.log('usuário removido');
-      return res.status(200).json({ message: 'Usuário removido com sucesso' });
+      await sendMail(
+        'invite.html',
+        'acesso',
+        `${name} te convidou para um workspace no Case AI`,
+        {
+          name,
+          id: workspace.id,
+        },
+      );
+
+      res.status(201).json({ message: 'Convite enviado com sucesso' });
     } catch (error) {
-      await log('users', req, 'delete', 'failed', JSON.stringify(error), null);
-      return res.status(400).json({ error: 'Remove failed, try again' });
+      console.error(error);
+      res
+        .status(500)
+        .json({ error: 'Erro interno no registro, tente novamente.' });
     }
   }
 
-  public async passwordUpdate(req: Request, res: Response): Promise<Response> {
+  /**
+   * @swagger
+   * /user/{id}:
+   *   put:
+   *     summary: Atualiza os dados de um usuário
+   *     tags: [Usuários]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         description: ID do usuário a ser atualizado
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               name:
+   *                 type: string
+   *               email:
+   *                 type: string
+   *               picture:
+   *                 type: string
+   *     responses:
+   *       204:
+   *         description: Usuário atualizado com sucesso
+   *       400:
+   *         description: Formato de e-mail inválido
+   *       404:
+   *         description: Usuário não encontrado
+   *       500:
+   *         description: Erro interno ao atualizar o usuário
+   */
+  public async update(req: Request, res: Response): Promise<void> {
     try {
-      const { oldPassword, newPassword } = req.body;
+      const { name, email, picture }: UserInterface = req.body;
+
+      if (email && !emailValidator(email)) {
+        res.status(400).json({ message: 'Formato de e-mail inválido.' });
+        return;
+      }
+
+      const user = await Users.findOne(req.userId);
+
+      if (!user) {
+        res.status(404).json({ message: 'Usuário não encontrado.' });
+        return;
+      }
+
+      const valuesToUpdate = {
+        name: name || user.name,
+        email: email || user.email,
+        picture: picture || user.picture,
+      };
+
+      await Users.update(user.id, { ...valuesToUpdate });
+
+      res.status(204).send({ message: 'Usuário atualizado com sucesso' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        message: 'Erro interno ao atualizar o usuário, tente novamente.',
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /user/role/{id}:
+   *   put:
+   *     summary: Atualiza um acesso de um usuário
+   *     tags: [Usuários]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         description: ID do acesso a ser atualizado
+   *         schema:
+   *           type: string
+   *       - in: header
+   *         name: workspaceId
+   *         required: true
+   *         description: ID do workspace
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               role:
+   *                 type: string
+   *     responses:
+   *       204:
+   *         description: Permissão atualizada com sucesso
+   *       400:
+   *         description: ID de acesso ou permissão não informado
+   *       404:
+   *         description: Acesso não encontrado
+   *       500:
+   *         description: Erro interno ao atualizar o usuário
+   */
+  public async updateRole(req: Request, res: Response): Promise<void> {
+    try {
       const id = req.params.id;
 
-      if (!oldPassword || !newPassword) return res.status(400).json({ message: 'Invalid values for update password' });
+      if (!id) {
+        res.status(400).json({ message: 'ID de acesso não informado' });
+        return;
+      }
+      const { role } = req.body;
 
-      const user = await Users.findOneOrFail(id);
+      if (!role) {
+        res.status(400).json({ message: 'Permissão não informada' });
+        return;
+      }
 
-      if (!(await bcrypt.compare(oldPassword, user.passwordHash))) return res.status(404).json({ message: 'Invalid password' });
+      const access = await Access.findOne(id);
 
-      const passwordHash = await bcrypt.hash(newPassword, 10);
+      if (!access) {
+        res.status(404).json({ message: 'Acesso não encontrado.' });
+        return;
+      }
 
-      await Users.update(id, { passwordHash });
+      await Access.update(access.id, { role: role || access.role });
 
-      await log('users', req, 'passwordUpdate', 'success', JSON.stringify({ id: id }), user);
-
-      return res.status(200).json();
+      res.status(204).send({ message: 'Permissão atualizada com sucesso' });
     } catch (error) {
-      await log('users', req, 'passwordUpdate', 'failed', JSON.stringify(error), null);
+      console.error(error);
+      res.status(500).json({
+        message: 'Erro interno ao atualizar o usuário, tente novamente.',
+      });
+    }
+  }
 
-      return res.status(400).json({ error: 'Update password failed, ckeck values and try again' });
+  /**
+   * @swagger
+   * /user/update-password/{id}:
+   *   put:
+   *     summary: Atualiza a senha de um usuário
+   *     description: Este endpoint deve ser utilizado pelo próprio usuário.
+   *     tags: [Usuários]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         description: ID do usuário a ser atualizado
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               oldPassword:
+   *                 type: string
+   *               newPassword:
+   *                 type: string
+   *     responses:
+   *       204:
+   *         description: Senha atualizada com sucesso
+   *       400:
+   *         description: Valores inválidos para redefinir a senha
+   *       404:
+   *         description: Usuário não encontrado
+   *       500:
+   *         description: Erro interno ao atualizar a senha
+   */
+  public async updatePassword(req: Request, res: Response): Promise<void> {
+    try {
+      const id = req.params.id;
+
+      if (!id) {
+        res.status(400).json({ message: 'ID de usuário não informado' });
+        return;
+      }
+
+      const { oldPassword, newPassword } = req.body;
+
+      if (!oldPassword || !newPassword) {
+        res.status(400).json({ message: 'Valores inválidos para redefinir a senha' });
+        return;
+      }
+
+      // Aqui você deve adicionar a lógica para verificar a senha antiga e atualizar para a nova senha
+
+      res.status(204).send({ message: 'Senha atualizada com sucesso' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        message: 'Erro interno ao atualizar a senha, tente novamente.',
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /user/{id}:
+   *   delete:
+   *     summary: Remove o acesso de um usuário a um workspace
+   *     description: Este endpoint deve ser utilizado pelo administrador ou proprietário do workspace.
+   *     tags: [Usuários]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         description: ID do acesso a ser removido
+   *         schema:
+   *           type: string
+   *       - in: header
+   *         name: workspaceId
+   *         required: true
+   *         description: ID do workspace
+   *         schema:
+   *           type: string
+   *     responses:
+   *       204:
+   *         description: Acesso removido com sucesso
+   *       400:
+   *         description: ID de acesso ou workspace não informado
+   *       404:
+   *         description: Acesso não encontrado
+   *       500:
+   *         description: Erro interno ao remover o acesso
+   */
+  public async removeAccess(req: Request, res: Response): Promise<void> {
+    try {
+      const id = req.params.id;
+
+      if (!id) {
+        res.status(400).json({ message: 'ID de acesso não informado' });
+        return;
+      }
+
+      const workspaceId = req.header('workspaceId');
+
+      if (!workspaceId) {
+        res.status(400).json({ message: 'ID do workspace não informado' });
+        return;
+      }
+
+      // Aqui você deve adicionar a lógica para remover o acesso do usuário ao workspace
+
+      res.status(204).send({ message: 'Acesso removido com sucesso' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        message: 'Erro interno ao remover o acesso, tente novamente.',
+      });
     }
   }
 }

@@ -7,7 +7,7 @@ import AssistantRoutes from './assistant.routes';
 import ThreadRoutes from './thread.routes';
 import VectorRoutes from './vector.routes';
 import UserRoutes from './user.routes';
-import PlaygroundRoutes from './playground.routes'
+import PlaygroundRoutes from './thread.routes'
 import DocumentRoutes from './document.routes'
 import { ensureAuthenticated } from '@middlewares/ensureAuthenticated';
 

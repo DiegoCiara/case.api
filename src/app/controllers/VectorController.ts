@@ -1,6 +1,5 @@
 import Workspace from '@entities/Workspace';
 import { Request, Response } from 'express';
-import { log } from '@utils/functions/createLog';
 import AWS from 'aws-sdk';
 import OpenAI from 'openai';
 import fs from 'fs';
@@ -33,14 +32,11 @@ class VectorController {
 
       if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
-      await log('vectors', req, 'findById', 'success', JSON.stringify({ id: workspace.vectorId }), workspace.vectorId);
-
       const files = await listFiles(openai, workspace)
 
       return res.status(200).json(files);
     } catch (error) {
       console.log(error);
-      await log('vectors', req, 'findById', 'failed', JSON.stringify(error), null);
       return res.status(404).json({ message: 'Cannot find groups, try again' });
     }
   }
@@ -59,12 +55,10 @@ class VectorController {
 
       const usagePercentage = (totalBytesUsed / maxStorage) * 100;
 
-      await log('vectors', req, 'findById', 'success', JSON.stringify({ id: workspace.vectorId }), workspace.vectorId);
-
       return res.status(200).json({ percent: usagePercentage.toFixed(2), bytes: totalBytesUsed });
     } catch (error) {
       console.log(error);
-      await log('vectors', req, 'findById', 'failed', JSON.stringify(error), null);
+
       return res.status(404).json({ message: 'Cannot find groups, try again' });
     }
   }
@@ -160,15 +154,12 @@ class VectorController {
         }
       }
 
-      // Logar a operação de sucesso
-      await log('uploadFiles', req, 'uploadFiles', 'success', JSON.stringify({ vectorId }), vectorId);
-
       (await ioSocket).emit(`vector:${workspace.id}`);
 
       return res.status(200).json({ completed: completed, failed: failed }); // Retornar os documentos criados
     } catch (error) {
       console.error(error);
-      await log('uploadFiles', req, 'uploadFiles', 'failed', JSON.stringify(error), null);
+
       return res.status(500).json({ message: 'Falha ao realizar upload, tente novamente.' });
     }
   }
@@ -190,14 +181,12 @@ class VectorController {
 
       const openaiFile = await openai.files.del(id);
 
-      await log('files', req, 'delete', 'success', JSON.stringify(id), { file: openaiFile.id, openaiFile: openaiFile.id });
-
       (await ioSocket).emit(`vector:${workspace.id}`);
 
       return res.status(200).json({ message: 'File deleted successfully' });
     } catch (error) {
       console.error(error);
-      await log('files', req, 'delete', 'failed', JSON.stringify(error), null);
+
       return res.status(500).json({ error: 'Delete failed, try again' });
     }
   }
@@ -228,14 +217,12 @@ class VectorController {
         }
       }
 
-      await log('files', req, 'delete', 'success', JSON.stringify(workspaceId), { workspaceId });
-
       (await ioSocket).emit(`vector:${workspace.id}`);
 
       return res.status(200).json({ completed: completed, failed: failed });
     } catch (error) {
       console.error(error);
-      await log('files', req, 'delete', 'failed', JSON.stringify(error), null);
+
       return res.status(500).json({ error: 'Delete failed, try again' });
     }
   }

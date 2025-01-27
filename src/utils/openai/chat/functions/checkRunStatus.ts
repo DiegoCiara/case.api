@@ -1,7 +1,6 @@
 import Thread from '@entities/Thread';
 import Workspace from '@entities/Workspace';
 import OpenAI from 'openai';
-import Log from '@entities/Log';
 import { ioSocket } from '@src/socket';
 import { runIntegration } from './runIntegration';
 import { getTime } from './actions/getTime';
@@ -46,7 +45,7 @@ export async function checkRun(openai: OpenAI, workspace: Workspace, threadId: s
                 const args = tool.function.arguments;
                 try {
                   const action: any = await runIntegration(integrationFinded, args);
-                  let message = action?.message;
+                  const message = action?.message;
                   return {
                     tool_call_id: tool.id,
                     output: message || 'Ocorreu um erro ao tentar executar a função, tente novamente',
@@ -63,7 +62,7 @@ export async function checkRun(openai: OpenAI, workspace: Workspace, threadId: s
                 const args = tool?.function?.arguments;
                 try {
                   const action = await getTime();
-                  let message = action?.message;
+                  const message = action?.message;
                   return {
                     tool_call_id: tool.id,
                     output: message,
@@ -80,7 +79,7 @@ export async function checkRun(openai: OpenAI, workspace: Workspace, threadId: s
                 const args = tool?.function?.arguments;
                 try {
                   const action = await createDocument(workspace, threadId, args);
-                  let message = action?.message;
+                  const message = action?.message;
                   return {
                     tool_call_id: tool.id,
                     output: message,
@@ -112,13 +111,6 @@ export async function checkRun(openai: OpenAI, workspace: Workspace, threadId: s
         } catch (error) {
           console.error(error);
 
-          await Log.create({
-            table: 'actions',
-            operation: 'runAction',
-            status: 'failed',
-            data: JSON.stringify(error),
-          }).save();
-
           resolve(null);
         }
       } else {
@@ -137,30 +129,4 @@ export async function checkRun(openai: OpenAI, workspace: Workspace, threadId: s
   });
 }
 
-export async function checkRunStatus({ openai, threadId, runId }: { openai: OpenAI; threadId: string; runId: string }): Promise<any> {
-  return await new Promise((resolve, reject) => {
-    let timeoutId: NodeJS.Timeout;
-
-    const verify = async (): Promise<void> => {
-      const runStatus = await openai.beta.threads.runs.retrieve(threadId, runId);
-      console.log(runStatus.required_action);
-      if (runStatus.status === 'completed') {
-        clearTimeout(timeoutId); // Limpa o timeout se o status for 'completed'
-        const messages = await openai.beta.threads.messages.list(threadId);
-        resolve(messages);
-      } else if (runStatus.status === 'failed') {
-        resolve(null);
-      } else {
-        console.log('Aguardando resposta da OpenAI... Status ==>', runStatus?.status);
-        setTimeout(verify, 3000);
-      }
-    };
-
-    timeoutId = setTimeout(() => {
-      resolve(null);
-    }, 15000);
-
-    verify();
-  });
-}
 

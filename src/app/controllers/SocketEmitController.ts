@@ -2,13 +2,8 @@ import { Server } from 'socket.io';
 import { io } from 'socket.io-client';
 import dotenv from 'dotenv';
 import Workspace from '@entities/Workspace';
-import Thread from '@entities/Thread';
-import eventEmitter from '@utils/emitter';
-import { In, getRepository } from 'typeorm';
 import User from '@entities/User';
-import Access from '@entities/Access';
-import { v4 as uuidv4, validate as uuidValidate } from 'uuid';
-import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { validate as uuidValidate } from 'uuid';
 import OpenAI from 'openai';
 import { formatMessage } from '@utils/openai/management/threads/formatMessage';
 import { sendToQueue } from '@utils/rabbitMq/send';
@@ -51,22 +46,25 @@ export async function SocketEmitController(socketPlatform: Server) {
       const workspace = await Workspace.findOne(workspaceId);
 
       if (!workspace || !workspace.id){
-        returnChatError(threadId)
+        await returnChatError(threadId)
+        return
       }
 
       const user = await User.findOne(userId);
 
       if (!user) {
         returnChatError(threadId)
-      };
+        return
+      }
 
       const thread = await openai.beta.threads.retrieve(threadId);
 
       if (!thread.id) {
         returnChatError(threadId)
-      };
-
-      const messageOpenai: any = await formatMessage(openai, media, text, thread.id, workspace!, 'playground');
+        return
+      }
+      
+      const messageOpenai: any = await formatMessage(openai, media, text, thread.id, workspace, 'playground');
 
       await openai.beta.threads.messages.create(thread.id, {
         role: 'user',
@@ -76,12 +74,12 @@ export async function SocketEmitController(socketPlatform: Server) {
       socket.emit(`playground:${thread.id}`); //Afrmando que o type pode ser apenas ou playground, ou thread
 
       const data = JSON.stringify({
-        workspaceId: workspace!.id,
+        workspaceId: workspace.id,
         threadId: thread.id,
         messages: messageOpenai,
       });
 
-      const queue = `playground:${workspace!.id}`;
+      const queue = `playground:${workspace.id}`;
 
       await sendToQueue(queue, data);
 

@@ -1,155 +1,279 @@
+import { Request, Response } from 'express';
+import Workspace from '@entities/Workspace';
+import OpenAI from 'openai';
+import User from '@entities/User';
+import { formatMessage, transformMessages } from '@utils/openai/management/threads/formatMessage';
+import { listMessages } from '@utils/openai/management/threads/listMessages';
+import { sendToQueue } from '@utils/rabbitMq/send';
+import { processQueue } from '@utils/rabbitMq/proccess';
+import Thread from '@entities/Thread';
+import { retrieveFile } from '@utils/openai/management/threads/fileRetrivie';
+import { ioSocket } from '@src/socket';
 
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_KEY,
+});
 
 class ThreadController {
-  // public async runThread(req: Request, res: Response): Promise<any> {
-  //   try {
-  //     const { messageBody, message, sessionClient, number, name, type, mimeType, caption, fromMe } = req.body;
-  //     if (fromMe) return;
-  //     let messageReceived = message;
-  //     let mediaUrl: any = '';
-  //     const id = uuidv4();
-  //     const captionMessage = caption ? caption : '';
-  //     const isImage = type === 'image';
-  //     const isAudio = mimeType === 'audio/ogg; codecs=opus' && !isImage;
-  //     const usage = 'wpp';
-  //     const typeMessage = await typeWppMessage(req.body);
-  //     const chatId = number;
-  //     const session = await Session.findOne(sessionClient, { relations: ['workspace', 'assistant'] });
-  //     console.log(chatId)
+  public async findPlaygrounds(req: Request, res: Response): Promise<Response> {
+    try {
+      const workspaceId = req.header('workspaceId');
 
-  //     const assistant = await Assistant.findOne(session?.assistant.id, {
-  //       relations: [ 'workspace','workspace.accesses','workspace.accesses.user', 'session', 'funnels', 'funnels.pipelines'],
-  //     });
+      const workspace = await Workspace.findOne(workspaceId);
 
-  //     const workspace = assistant.workspace
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
-  //     if (!session) {
-  //       return res.status(200).json('ok');
-  //     }
+      const user = await User.findOne(req.userId);
 
-  //     if (!assistant) {
-  //       return res.status(200).json('ok');
-  //     }
+      if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
 
+      const threads = await Thread.find({ where: { workspace, user } });
+      console.log(threads);
+      return res.status(200).json(threads?.reverse());
+    } catch (error) {
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+  public async findPlayground(req: Request, res: Response): Promise<Response> {
+    try {
 
-  //     const contact = await checkContact(usage, number, null, workspace!);
+      const { id } = req.params
 
-  //     // console.log(contact)
+      if(!id) return res.status(400).json({ message: 'Id da thread não informado' });
 
-  //     if (!contact) {
-  //       return res.status(200).json('ok');
-  //     }
+      const workspaceId = req.header('workspaceId');
 
-  //     const threadFinded = await Thread.findOne({
-  //       where: { contact: contact, chatActive: true, assistant },
-  //       relations: ['assistant', 'assistant.session', 'contact','contact.customer', 'landingpage'],
-  //     });
+      const workspace = await Workspace.findOne(workspaceId);
 
-  //     const { thread } = await checkThread(threadFinded!, workspace!, assistant, usage, contact);
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
+      const user = await User.findOne(req.userId);
 
-  //     const messageCreated = await Message.create({
-  //       workspace,
-  //       contact: contact,
-  //       type: typeMessage,
-  //       mediaUrl: mediaUrl!,
-  //       assistant,
-  //       thread,
-  //       content: !isImage ? messageReceived : captionMessage,
-  //       from: 'CONTACT',
-  //     }).save();
+      if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
 
+      const threads = await Thread.find({ where: { workspace, user } });
+      console.log(threads);
+      return res.status(200).json(threads);
+    } catch (error) {
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
 
-  //     if(!thread) return res.status(200).json('ok');
+  public async listPlaygroundMessages(req: Request, res: Response): Promise<Response> {
+    try {
+      const workspaceId = req.header('workspaceId');
 
-  //     if (threadFinded && thread) {
-  //       await Thread.update(threadFinded!.id, { name: `${new Date()}` });
-  //     }
-  //     if (isAudio) {
-  //       mediaUrl = await convertDataAudio(messageBody, id, workspace, thread);
+      const workspace = await Workspace.findOne(workspaceId);
 
-  //       messageReceived = await whisper(id, workspace, assistant, mediaUrl, thread);
-  //     } else if (isImage) {
-  //       mediaUrl = await convertDataImage(messageBody, id, workspace, thread);
-  //       const imageDimensions = await saveDimensionsImage(mediaUrl, workspace, assistant, thread);
-  //       console.log(imageDimensions);
-  //     }
-  //     if(threadFinded && threadFinded.contact.customer){
-  //       const lastUpdatedDeal = await Deal.findOne({
-  //           where: {
-  //               customer: threadFinded.contact.customer, // Substitua `customer` pelo valor correto para o cliente
-  //               status: In(['INPROGRESS', 'PENDING']) // Filtro pelo status desejado
-  //           },
-  //           relations:['pipeline', 'pipeline.funnel'],
-  //           order: {
-  //               updatedAt: 'DESC' // Ordena pela data de atualização mais recente
-  //           }
-  //       });
-  //       if(lastUpdatedDeal){
-  //         console.log('=============================================================>', lastUpdatedDeal?.pipeline?.funnel?.id)
-  //         await Deal.update(lastUpdatedDeal.id, { observations: lastUpdatedDeal.observations})
-  //         eventEmitter.emit(`pipelineDeals`, lastUpdatedDeal?.pipeline?.funnel?.id);
-  //       }
-  //     }
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
-  //     eventEmitter.emit(`threads`, workspace);
-  //     eventEmitter.emit(`thread`, thread, workspace);
-  //     eventEmitter.emit(`newMessage`, thread, messageCreated);
+      const { threadId } = req.params;
 
+      if (!threadId) return res.status(400).json({ message: 'Id da thread não informado' });
 
-  //     (await ioSocket).emit(thread.id, messageCreated);
+      const { data }: any = await listMessages(openai, threadId);
 
-  //     if (!assistant.wppEnabled) {
-  //       // const waitTime = delaySeconds - differenceInSeconds(now, lastUpdated);
-  //       console.log('Assistente Sem permissão');
-  //       return;
-  //     }
+      const messages = transformMessages(data);
 
-  //     if (thread && (!thread.chatActive || thread!.responsible === 'USER')) {
-  //       console.log('Este chat está inativo ou não está atribuído à assistente', thread.id);
-  //       eventEmitter.emit(`threads`, workspace);
-  //       eventEmitter.emit(`newMessage`, thread, messageCreated);
-  //       return;
-  //     }
+      return res.status(200).json(messages);
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
 
-  //     function openaiMessage() {
-  //       if (isImage) {
-  //         return caption
-  //           ? [
-  //               { type: 'text', text: captionMessage },
-  //               { type: 'image_url', image_url: { url: mediaUrl } },
-  //             ]
-  //           : [{ type: 'image_url', image_url: { url: mediaUrl } }];
-  //       } else {
-  //         return [{ type: 'text', text: messageReceived }];
-  //       }
-  //     }
+  public async retrieveFile(req: Request, res: Response): Promise<Response> {
+    try {
+      const workspaceId = req.header('workspaceId');
 
-  //     const msg = await openaiMessage();
+      const workspace = await Workspace.findOne(workspaceId);
 
-  //     const answer = await openAI(contact, workspace, assistant, thread!, thread.threadId, msg, 'user');
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
 
-  //     await sendMessage(session.id, session.token, chatId,(answer?.text.content));
-  //     // Adaptar para novos canais de comunicações
+      const { fileId } = req.params;
 
-  //     if (threadFinded && thread) {
-  //       await Thread.update(threadFinded!.id, { name: `${new Date()}` });
-  //     }
+      if (!fileId) return res.status(400).json({ message: 'Id da thread não informado' });
 
-  //     eventEmitter.emit(`threads`, workspace);
-  //     eventEmitter.emit(`newMessage`, thread, answer.text);
-  //     eventEmitter.emit(`thread`, thread, workspace);
+      const data = await retrieveFile(openai, fileId);
 
-  //     // Validações para os dados da assinatura
-  //     await log('openai', req, 'openAI', 'success', JSON.stringify(messageCreated.content), answer?.text.content);
+      console.log(data);
+      return res.status(200).json(data);
+    } catch (error) {
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
 
-  //     return res.status(200).json('ok');
-  //   } catch (error) {
-  //     await log('openai', req, 'openAI', 'success', JSON.stringify(error), null);
-  //     console.log(error)
-  //     return res.status(500).json({ error: 'Error creating subscription' });
-  //   }
-  // }
+  public async createPlayground(req: Request, res: Response): Promise<Response> {
+    try {
+      const { text, media } = req.body;
+
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const user = await User.findOne(req.userId);
+
+      if (!user) return res.status(404).json({ message: 'user não encontrado' });
+
+      const thread = await openai.beta.threads.create();
+
+      const messageOpenai: any = await formatMessage(openai, media, text, thread.id, workspace, 'playground');
+
+      console.log();
+
+      const name = messageOpenai.find((e: any) => e.type === 'text')?.text || 'Imagem';
+
+      const threadCreated = await Thread.create({
+        threadId: thread.id,
+        name,
+        workspace,
+        user,
+      }).save();
+
+      if (!threadCreated.id) return res.status(400).json({ message: 'Não foi possível criar a thread, tente novamente.' });
+
+      await openai.beta.threads.messages.create(thread.id, {
+        role: 'user',
+        content: messageOpenai, //Array de mensagens comoo o openaiMessage
+      });
+
+      const data = JSON.stringify({
+        workspaceId: workspace.id,
+        threadId: thread.id,
+        messages: messageOpenai,
+      });
+
+      const queue = `playground:${workspace.id}`;
+
+      await sendToQueue(queue, data);
+
+      await processQueue(queue, 'playground');
+
+      return res.status(200).json(thread.id);
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+
+  public async sendMessage(req: Request, res: Response): Promise<Response> {
+    try {
+      const { threadId } = req.params;
+      const { text, media } = req.body;
+
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const user = await User.findOne(req.userId);
+
+      if (!user) return res.status(404).json({ message: 'user não encontrado' });
+
+      const thread = await openai.beta.threads.retrieve(threadId);
+
+      if (!thread.id) return res.status(400).json({ message: 'Não foi possível verificar a thread, tente novamente.' });
+
+      const messageOpenai: any = formatMessage(openai, media, text, thread.id, workspace, 'playground');
+
+      console.log(messageOpenai);
+
+      await openai.beta.threads.messages.create(thread.id, {
+        role: 'user',
+        content: messageOpenai, //Array de mensagens comoo o openaiMessage
+      });
+      (await ioSocket).emit(`playground:${thread.id}`); //Afrmando que o type pode ser apenas ou playground, ou thread
+
+      const data = JSON.stringify({
+        workspaceId: workspace.id,
+        threadId: thread.id,
+        messages: messageOpenai,
+      });
+
+      const queue = `playground:${workspace.id}`;
+
+      await sendToQueue(queue, data);
+
+      await processQueue(queue, 'playground');
+
+      return res.status(200).json(thread.id);
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+  public async deleteThread(req: Request, res: Response): Promise<Response> {
+    try {
+      const { id } = req.params;
+
+      if (!id) return res.status(404).json({ message: 'Forneça um id de uma thread' });
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const user = await User.findOne(req.userId);
+
+      if (!user) return res.status(404).json({ message: 'user não encontrado' });
+
+      console.log(id);
+      const thread = await Thread.findOne(id, { where: { workspace } });
+
+      if (!thread) return res.status(400).json({ message: 'Não foi possível encontrar a thread, tente novamente.' });
+
+      const openaiThread = await openai.beta.threads.retrieve(thread.threadId);
+
+      if (!openaiThread) return res.status(400).json({ message: 'Não foi possível verificar a thread, tente novamente.' });
+
+      const deletedThread = await openai.beta.threads.del(openaiThread.id);
+
+      if (deletedThread.id) {
+        await Thread.softRemove(thread);
+      }
+
+      return res.status(200).json(thread.id);
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+  public async updateThread(req: Request, res: Response): Promise<Response> {
+    try {
+      const { id } = req.params;
+
+      const { name } = req.body;
+
+      if (!id) return res.status(404).json({ message: 'Forneça um id de uma thread' });
+
+      if (!name) return res.status(404).json({ message: 'Forneça um nome para a thread' });
+
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+
+      const user = await User.findOne(req.userId);
+
+      if (!user) return res.status(404).json({ message: 'user não encontrado' });
+
+      console.log(id);
+      const thread = await Thread.findOne(id, { where: { workspace } });
+
+      if (!thread) return res.status(400).json({ message: 'Não foi possível encontrar a thread, tente novamente.' });
+
+      await Thread.update(thread.id, { name });
+
+      return res.status(200).json(thread.id);
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
 }
 
 export default new ThreadController();

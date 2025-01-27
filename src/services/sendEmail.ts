@@ -1,4 +1,3 @@
-import nodemailer from 'nodemailer';
 import handlebars from 'handlebars';
 import fs from 'fs';
 import transport from '@src/modules/mailer';

@@ -85,7 +85,6 @@ class WorkspaceController {
   }
   public async createWorkspace(req: Request, res: Response): Promise<any> {
     try {
-      const workspaceId = req.header('workspaceId');
 
       const { name, priceId, paymentMethodId } = req.body;
 
@@ -95,7 +94,7 @@ class WorkspaceController {
 
       if(!user)return res.status(404).json({ message: 'Usuário não encontrado.' });
 
-      const subscription = await createSubscription(user.customerId, priceId, paymentMethodId)
+      const subscription = await createSubscription(user.customer_id, priceId, paymentMethodId)
 
       if(!subscription?.id)return res.status(400).json({ message: 'Não foi possível realizar a assinatura, altere o método de pagamento e tente novamente.' });
 

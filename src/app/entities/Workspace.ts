@@ -4,12 +4,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  JoinColumn,
-  JoinTable,
-  ManyToMany,
-  ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -19,11 +14,6 @@ import Whisper from './Whisper';
 import Vision from './Vision';
 import Access from './Access';
 import Integration from './Integration';
-import Customer from './Customer';
-import TokenPlayground from './PlaygroundToken';
-import Playground from './Playground';
-import PlaygroundVision from './PlaygroundVision';
-import PlaygroundWhisper from './PlaygroundWhisper';
 import Document from './Document';
 
 @Entity({ name: 'workspaces' })
@@ -61,14 +51,8 @@ class Workspace extends BaseEntity {
   @OneToMany(() => Token, (token) => token.workspace)
   tokens!: Token[];
 
-  @OneToMany(() => TokenPlayground, (token) => token.workspace)
-  playgroundTokens!: TokenPlayground[];
-
   @OneToMany(() => Access, (token) => token.workspace)
   accesses!: Access[];
-
-  @OneToMany(() => Customer, (token) => token.workspace)
-  customers!: Customer[];
 
   @OneToMany(() => Thread, (thread) => thread.workspace)
   threads!: Thread[];
@@ -76,23 +60,14 @@ class Workspace extends BaseEntity {
   @OneToMany(() => Document, (thread) => thread.workspace)
   documents!: Document[];
 
-  @OneToMany(() => Playground, (thread) => thread.workspace)
-  playgrounds!: Playground[];
-
   @OneToMany(() => Whisper, (notification) => notification.workspace)
   whispers!: Whisper[];
-
-  @OneToMany(() => PlaygroundWhisper, (notification) => notification.workspace)
-  playground_whispers!: PlaygroundWhisper[];
 
   @OneToMany(() => Integration, (notification) => notification.workspace)
   integrations!: Integration[];
 
   @OneToMany(() => Vision, (notification) => notification.workspace)
   visions!: Vision[];
-
-  @OneToMany(() => PlaygroundVision, (notification) => notification.workspace)
-  playground_visions!: PlaygroundVision[];
 
   @CreateDateColumn()
   createdAt!: Date;

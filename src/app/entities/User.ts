@@ -4,17 +4,12 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import Access from './Access';
 import Thread from './Thread';
-import Log from './Log';
-import Playground from './Playground';
 
 @Entity({ name: 'users' })
 class User extends BaseEntity {
@@ -28,34 +23,35 @@ class User extends BaseEntity {
   email!: string;
 
   @Column()
-  customerId!: string;
+  customer_id!: string;
 
-  @Column({ nullable: true, default: false })
-  hasResetPass!: boolean;
-
-  @Column()
-  passwordHash!: string;
 
   @Column({ nullable: true })
   picture!: string;
 
-  @Column({ default: true }) //30 minutos
-  notifyEnabled!: boolean; //Tempo de espera para aassumir o whatsapp
+  @Column()
+  password_hash!: string;
+
+  @Column({ nullable: true })
+  token_reset_password!: string;
+
+  @Column({ nullable: true, type: 'timestamp' })
+  reset_password_expires!: Date;
+
+  @Column({ nullable: true })
+  secret!: string;
+
+  @Column({ nullable: true })
+  token_auth_secret!: string;
+
+  @Column({ default: false })
+  has_configured_2fa!: boolean;
 
   @OneToMany(() => Access, (access) => access.user)
   accesses!: Access[];
 
-  @OneToMany(() => Playground, (workspace) => workspace.user)
-  playgrounds!: Playground[];
-
-  @OneToMany(() => Log, (workspace) => workspace.user)
-  logs!: Log[];
-
-  @Column({ nullable: true })
-  passwordResetToken!: string;
-
-  @Column({ nullable: true, type: 'timestamp' })
-  passwordResetExpires!: Date;
+  @OneToMany(() => Thread, (workspace) => workspace.user)
+  threads!: Thread[];
 
   @CreateDateColumn()
   createdAt!: Date;

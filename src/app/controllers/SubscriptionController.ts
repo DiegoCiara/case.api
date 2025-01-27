@@ -90,7 +90,7 @@ class SubscriptionController {
 
       if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
 
-      const customer = await listPaymentMethods(user.customerId);
+      const customer = await listPaymentMethods(user.customer_id);
 
       const { data }: any = customer;
 
@@ -123,7 +123,7 @@ class SubscriptionController {
 
       if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
 
-      const customer = await listPaymentMethods(user.customerId);
+      const customer = await listPaymentMethods(user.customer_id);
 
       const { data }: any = customer;
 
@@ -144,7 +144,7 @@ class SubscriptionController {
 
       if (!user) return res.status(404).json({ message: 'user não encontrado' });
 
-      const customer = await setPaymentMethodAsDefault(user.customerId, payment_method);
+      const customer = await setPaymentMethodAsDefault(user.customer_id, payment_method);
 
       const { data }: any = customer;
 
@@ -162,7 +162,7 @@ class SubscriptionController {
       const user = await User.findOne(userId);
 
       if (!user) return res.status(404).json({ message: 'user não encontrado' });
-      const intent = await createPaymentIntent(user.customerId);
+      const intent = await createPaymentIntent(user.customer_id);
       console.log(intent);
       return res.status(200).json(intent);
     } catch (error) {

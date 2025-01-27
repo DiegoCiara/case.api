@@ -16,7 +16,6 @@ import Token from './Token';
 import User from './User';
 import Whisper from './Whisper';
 import Vision from './Vision';
-import Customer from './Customer';
 
 @Entity({ name: 'threads' })
 class Thread extends BaseEntity {
@@ -30,9 +29,9 @@ class Thread extends BaseEntity {
   @JoinColumn([{ name: 'workspace', referencedColumnName: 'id' }])
   workspace!: Workspace;
 
-  @ManyToOne(() => Customer, (user) => user.threads)
-  @JoinColumn([{ name: 'customer', referencedColumnName: 'id' }])
-  customer!: Customer;
+  @ManyToOne(() => User, (user) => user.threads)
+  @JoinColumn([{ name: 'user', referencedColumnName: 'id' }])
+  user!: User;
 
   @OneToMany(() => Token, (token) => token.thread)
   tokens!: Token[];
@@ -43,8 +42,8 @@ class Thread extends BaseEntity {
   @OneToMany(() => Vision, (token) => token.thread)
   visions!: Vision[];
 
-  // @Column({ type: 'enum', enum: ['ASSISTANT', 'USER'], default: 'ASSISTANT' })
-  // responsible!: string;
+  @Column()
+  name!: string;
 
   @Column()
   active!: boolean;
