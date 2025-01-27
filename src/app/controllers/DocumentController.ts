@@ -1,50 +1,55 @@
 import Workspace from '@entities/Workspace';
 import { Request, Response } from 'express';
-import { ioSocket } from '@src/socket';
 import Document from '@entities/Document';
+import { ioSocket } from '@src/socket';
 
 class VectorController {
-  public async findAll(req: Request, res: Response): Promise<Response> {
+  public async findAll(req: Request, res: Response): Promise<void> {
     try {
       const workspaceId = req.header('workspaceId');
 
       const workspace = await Workspace.findOne(workspaceId);
 
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
-
+      if (!workspace) {
+        res.status(404).json({ message: 'Workspace não encontrado' });
+        return;
+      }
       const documents = await Document.find({ where: { workspace } });
-      // const files = await listFiles(openai, workspace)
 
-      return res.status(200).json(documents.reverse());
+      res.status(200).json(documents.reverse());
     } catch (error) {
-      console.log(error);
-
-      return res.status(404).json({ message: 'Cannot find groups, try again' });
+      res.status(404).json({ message: 'Cannot find groups, try again' });
     }
   }
-  public async findById(req: Request, res: Response): Promise<Response> {
+  public async findById(req: Request, res: Response): Promise<void> {
     try {
       const workspaceId = req.header('workspaceId');
 
       const workspace = await Workspace.findOne(workspaceId);
 
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
-
+      if (!workspace) {
+        res.status(404).json({ message: 'Workspace não encontrado' });
+        return;
+      }
       const id = req.params.id;
 
-      if (!id) return res.status(400).json({ message: 'ID não encontrado' });
-
+      if (!id) {
+        res.status(400).json({ message: 'ID não encontrado' });
+        return;
+      }
       const document = await Document.findOne(id);
 
-      if (!document) return res.status(404).json({ message: 'Workspace não encontrado' });
+      if (!document) {
+        res.status(404).json({ message: 'Workspace não encontrado' });
+        return;
+      }
 
-      return res.status(200).json(document);
+      res.status(200).json(document);
     } catch (error) {
-      console.log(error);
-      return res.status(404).json({ message: 'Cannot find groups, try again' });
+      res.status(404).json({ message: 'Cannot find groups, try again' });
     }
   }
-  public async deleteFile(req: Request, res: Response): Promise<Response> {
+  public async deleteFile(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
 
@@ -52,53 +57,59 @@ class VectorController {
 
       const workspace = await Workspace.findOne(workspaceId);
 
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
-
-      if (!id) return res.status(400).json({ message: 'Please send a file id' });
-
+      if (!workspace) {
+        res.status(404).json({ message: 'Workspace não encontrado' });
+        return;
+      }
+      if (!id) {
+        res.status(400).json({ message: 'Please send a file id' });
+        return;
+      }
       const document = await Document.findOne(id);
 
-      if (!document) return res.status(400).json({ message: 'Documento não encontrado' });
-
+      if (!document) {
+        res.status(400).json({ message: 'Documento não encontrado' });
+        return;
+      }
       await Document.softRemove(document);
 
       (await ioSocket).emit(`document:${workspace.id}`);
 
-      return res.status(200).json({ message: 'File deleted successfully' });
+      res.status(200).json({ message: 'File deleted successfully' });
     } catch (error) {
-      console.error(error);
-
-      return res.status(500).json({ error: 'Delete failed, try again' });
+      res.status(500).json({ error: 'Delete failed, try again' });
     }
   }
-  public async deleteBatchFiles(req: Request, res: Response): Promise<Response> {
+  public async deleteBatchFiles(req: Request, res: Response): Promise<void> {
     try {
       const files = req.body;
 
-      console.log(files)
+      console.log(files);
       const workspaceId = req.header('workspaceId');
 
       const workspace = await Workspace.findOne(workspaceId);
 
-      if (!workspace) return res.status(404).json({ message: 'Workspace não encontrado' });
+      if (!workspace) {
+        res.status(404).json({ message: 'Workspace não encontrado' });
+        return;
+      }
 
       let completed = 0;
       let failed = 0;
 
-      console.log(files)
+      console.log(files);
 
       for (const file of files) {
         try {
           const document = await Document.findOne(file);
-          console.log(document)
-          if (document.id) {
+          console.log(document);
+          if (document) {
             const deleted = await Document.softRemove(document);
             if (!deleted) {
               failed = failed + 1;
             } else {
               completed = completed + 1;
             }
-            // const deleted = await openai.files.del(file);
           } else {
             failed = failed + 1;
           }
@@ -110,14 +121,11 @@ class VectorController {
 
       (await ioSocket).emit(`document:${workspace.id}`);
 
-      return res.status(200).json({ completed: completed, failed: failed });
+      res.status(200).json({ completed: completed, failed: failed });
     } catch (error) {
-      console.error(error);
-
-      return res.status(500).json({ error: 'Delete failed, try again' });
+      res.status(500).json({ error: 'Delete failed, try again' });
     }
   }
 }
 
 export default new VectorController();
-

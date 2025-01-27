@@ -96,4 +96,3 @@ const mocks = async (): Promise<void> => {
 };
 
 export default mocks;
-

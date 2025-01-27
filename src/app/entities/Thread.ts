@@ -62,4 +62,3 @@ class Thread extends BaseEntity {
 }
 
 export default Thread;
-

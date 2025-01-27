@@ -80,4 +80,3 @@ class Workspace extends BaseEntity {
 }
 
 export default Workspace;
-

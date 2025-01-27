@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
     "baseUrl": ".",
     "outDir": "./build",
     "module": "commonjs",
+    "target": "ESNext",
     "strict": true,
     "sourceMap": true,
     "moduleResolution": "node",
@@ -28,7 +28,7 @@
       "@src/*": ["./src/*"]
     }
   },
-  "include": ["src", "__tests__", "setup.js", "src/app/.ts", "downloadAudio.js", "revRun.ts", "src/utils/openai/chat/functions/.ts", "src/app/entities/Document.ts"]
-  // "exclude": ["node_modules"]
+  "include": ["src", "__tests__", "src/app/.ts",],
+  "exclude": ["node_modules"]
 }
 

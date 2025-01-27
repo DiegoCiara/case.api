@@ -3,6 +3,8 @@ import { Request, Response } from 'express';
 import Users from '@entities/User';
 import emailValidator from '@utils/functions/emailValidator';
 import speakeasy from 'speakeasy';
+import qrcode from 'qrcode';
+import { generateToken } from '@utils/functions/generateToken';
 import Workspace from '@entities/Workspace';
 import Access from '@entities/Access';
 import sendMail from '@src/services/sendEmail';

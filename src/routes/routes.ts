@@ -7,8 +7,8 @@ import AssistantRoutes from './assistant.routes';
 import ThreadRoutes from './thread.routes';
 import VectorRoutes from './vector.routes';
 import UserRoutes from './user.routes';
-import PlaygroundRoutes from './thread.routes'
-import DocumentRoutes from './document.routes'
+import PlaygroundRoutes from './thread.routes';
+import DocumentRoutes from './document.routes';
 import { ensureAuthenticated } from '@middlewares/ensureAuthenticated';
 
 const routes = Router();
@@ -35,4 +35,3 @@ routes.use('/vector/', ensureAuthenticated, VectorRoutes);
 routes.use('/thread', ThreadRoutes);
 
 export default routes;
-

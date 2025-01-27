@@ -1,14 +1,14 @@
-import { SocketEmitController } from "./app/controllers/SocketEmitController";
 
 
-const express = require('express');
-const http = require('http');
-const { Server } = require("socket.io");
-const cors = require('cors');
+import * as dotenv from 'dotenv';
+import http from 'http'
+import express from 'express';
+import cors from 'cors';
+import { Server} from 'socket.io';
+import { SocketEmitController } from '@controllers/SocketController';
+
 const app = express();
-require('dotenv').config();
 
-// const SOCKET_CONNECTION = `${process.env.CLIENT_CONNECTION}`;
 
 const SOCKET_CONNECTION = '*';
 

@@ -15,11 +15,10 @@ export async function processQueue(queue: string, type: string) {
     channel.consume(queue, async (msg) => {
       if (msg !== null) {
         const payload = JSON.parse(msg.content.toString());
-        const object = JSON.parse(payload)
+        const object = JSON.parse(payload);
         console.log('payload object parsed', object, typeof object);
         const { workspaceId, messages, threadId } = object;
-        const workspace = await Workspace.findOne(workspaceId, { relations: ['integrations']});
-
+        const workspace = await Workspace.findOne(workspaceId, { relations: ['integrations'] });
 
         const message = await mainOpenAI(workspace, threadId, messages, type);
 
@@ -32,4 +31,3 @@ export async function processQueue(queue: string, type: string) {
     console.error(error);
   }
 }
-

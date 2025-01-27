@@ -5,10 +5,7 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
-  OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -33,13 +30,13 @@ class Integration extends BaseEntity {
   id!: string;
 
   @Column()
-  name!: string; // total em Bytes
+  name!: string;
 
   @Column()
-  functionName!: string; // total em Bytes
+  functionName!: string;
 
   @Column()
-  description!: string; // total em Bytes
+  description!: string;
 
   @ManyToOne(() => Workspace, (user) => user.integrations)
   @JoinColumn([{ name: 'workspace', referencedColumnName: 'id' }])
@@ -52,10 +49,10 @@ class Integration extends BaseEntity {
   method!: string;
 
   @Column({type: 'jsonb', nullable: true})
-  body!: any[]; // total em Bytes
+  body!: any[];
 
   @Column({type: 'jsonb', nullable: true})
-  headers!: Headers[]; // total em Bytes
+  headers!: Headers[];
 
   @CreateDateColumn()
   createdAt!: Date;
@@ -64,7 +61,7 @@ class Integration extends BaseEntity {
   updatedAt!: Date;
 
   @DeleteDateColumn({ nullable: true })
-  deletedAt!: Date; // Modificação feita aqui para permitir valores nulos
+  deletedAt!: Date;
 }
 
 export default Integration;
