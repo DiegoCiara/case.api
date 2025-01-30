@@ -39,12 +39,6 @@ class Workspace extends BaseEntity {
   @Column({ nullable: true })
   favicon!: string;
 
-  @Column({ nullable: true })
-  logo!: string;
-
-  @Column({ nullable: true })
-  logoDark!: string;
-
   @Column()
   colorTheme!: string;
 

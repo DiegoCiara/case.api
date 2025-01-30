@@ -35,16 +35,6 @@ export class createWorkspace1631039612323 implements MigrationInterface {
             isNullable: true
           },
           {
-            name: 'logo',
-            type: 'varchar',
-            isNullable: true
-          },
-          {
-            name: 'logoDark',
-            type: 'varchar',
-            isNullable: true
-          },
-          {
             name: 'assistantPicture',
             type: 'varchar',
             isNullable: true
