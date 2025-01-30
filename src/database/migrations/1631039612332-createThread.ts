@@ -22,16 +22,17 @@ export class createThread1631039612332 implements MigrationInterface {
             type: 'uuid',
           },
           {
-            name: 'customer',
+            name: 'user',
             type: 'uuid',
           },
-          // {
-          //   name: 'name',
-          //   type: 'varchar',
-          // },
+          {
+            name: 'name',
+            type: 'varchar',
+          },
           {
             name: 'active',
             type: 'boolean',
+            default: true,
           },
           {
             name: 'createdAt',
@@ -62,8 +63,8 @@ export class createThread1631039612332 implements MigrationInterface {
     await queryRunner.createForeignKey(
       'threads',
       new TableForeignKey({
-        columnNames: ['customer'],
-        referencedTableName: 'customers',
+        columnNames: ['user'],
+        referencedTableName: 'users',
         referencedColumnNames: ['id'],
       })
     );

@@ -10,6 +10,7 @@ import Access from '@entities/Access';
 import sendMail from '@src/services/sendEmail';
 import { getInitialName } from '@utils/functions/getInitialName';
 import { createCustomer } from '@utils/stripe/customer/createCustomer';
+import jwt from 'jsonwebtoken';
 
 interface UserInterface {
   id?: string;
@@ -74,9 +75,7 @@ class UserController {
       const workspaceId = req.header('workspaceId');
 
       if (!workspaceId) {
-        res
-          .status(400)
-          .json({ message: 'Por favor, informe o ID do seu workspace.' });
+        res.status(400).json({ message: 'Por favor, informe o ID do seu workspace.' });
         return;
       }
 
@@ -101,15 +100,13 @@ class UserController {
             picture: access.user.picture,
             role: access.role,
           };
-        }),
+        })
       );
 
       res.status(200).json(users);
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .json({ error: 'Erro interno ao buscar usuário, tente novamente.' });
+      res.status(500).json({ error: 'Erro interno ao buscar usuário, tente novamente.' });
     }
   }
 
@@ -160,9 +157,7 @@ class UserController {
       res.status(200).json(user);
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .json({ error: 'Erro interno ao buscar usuário, tente novamente.' });
+      res.status(500).json({ error: 'Erro interno ao buscar usuário, tente novamente.' });
     }
   }
 
@@ -211,9 +206,7 @@ class UserController {
       const workspaceId = req.header('workspaceId');
 
       if (!workspaceId) {
-        res
-          .status(400)
-          .json({ message: 'Por favor, informe o ID do seu workspace.' });
+        res.status(400).json({ message: 'Por favor, informe o ID do seu workspace.' });
         return;
       }
 
@@ -247,8 +240,7 @@ class UserController {
 
       if (!access) {
         res.status(404).json({
-          message:
-            'Não foi encontrado nenhum acesso desse usuário para este workspace.',
+          message: 'Não foi encontrado nenhum acesso desse usuário para este workspace.',
         });
         return;
       }
@@ -260,9 +252,7 @@ class UserController {
       });
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .json({ error: 'Erro interno ao buscar usuário, tente novamente.' });
+      res.status(500).json({ error: 'Erro interno ao buscar usuário, tente novamente.' });
     }
   }
 
@@ -316,9 +306,7 @@ class UserController {
       const { name, email, password }: UserInterface = req.body;
 
       if (!email || !emailValidator(email) || !password) {
-        res
-          .status(400)
-          .json({ message: 'Valores inválidos para o novo usuário.' });
+        res.status(400).json({ message: 'Valores inválidos para o novo usuário.' });
         return;
       }
 
@@ -349,12 +337,20 @@ class UserController {
         return;
       }
 
+      const jwtSecret = process.env.SECRET;
+      // Verificar o token temporário
+
+      const tempToken = jwt.sign({ email: email }, jwtSecret!, {
+        expiresIn: '5m',
+      });
+
       const user = await Users.create({
         name,
         email,
         customer_id: customer.id,
         password_hash,
         secret: secret.base32,
+        token_auth_secret: tempToken,
       }).save();
 
       if (!user) {
@@ -363,6 +359,8 @@ class UserController {
         });
         return;
       }
+
+      await sendMail('newUser', 'contato@softspace.com.br', 'Bem vindo ao Case!', { name: user.name })
 
       res.status(201).json({
         user: {
@@ -374,9 +372,7 @@ class UserController {
       });
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .json({ message: 'Erro interno no registro, tente novamente.' , error: error });
+      res.status(500).json({ message: 'Erro interno no registro, tente novamente.', error: error });
     }
   }
 
@@ -424,9 +420,7 @@ class UserController {
       const workspaceId = req.header('workspaceId');
 
       if (!workspaceId) {
-        res
-          .status(400)
-          .json({ message: 'Por favor, informe o ID do seu workspace.' });
+        res.status(400).json({ message: 'Por favor, informe o ID do seu workspace.' });
         return;
       }
 
@@ -440,9 +434,7 @@ class UserController {
       const { email }: UserInterface = req.body;
 
       if (!email || !emailValidator(email)) {
-        res
-          .status(400)
-          .json({ message: 'Valores inválidos para o novo usuário.' });
+        res.status(400).json({ message: 'Valores inválidos para o novo usuário.' });
         return;
       }
 
@@ -457,22 +449,15 @@ class UserController {
 
       const name = getInitialName(user.name);
 
-      await sendMail(
-        'invite.html',
-        'acesso',
-        `${name} te convidou para um workspace no Case AI`,
-        {
-          name,
-          id: workspace.id,
-        },
-      );
+      await sendMail('invite.html', 'acesso', `${name} te convidou para um workspace no Case AI`, {
+        name,
+        id: workspace.id,
+      });
 
       res.status(201).json({ message: 'Convite enviado com sucesso' });
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .json({ error: 'Erro interno no registro, tente novamente.' });
+      res.status(500).json({ error: 'Erro interno no registro, tente novamente.' });
     }
   }
 

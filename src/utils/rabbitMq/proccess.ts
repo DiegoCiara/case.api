@@ -1,8 +1,6 @@
 import Workspace from '@entities/Workspace';
 import { mainOpenAI } from '@utils/openai/chat/openai';
 import amqp from 'amqplib';
-import { checkThread } from '@utils/openai/chat/functions/checkThread';
-import Thread from '@entities/Thread';
 import { ioSocket } from '@src/socket';
 
 export async function processQueue(queue: string, type: string) {
@@ -27,7 +25,7 @@ export async function processQueue(queue: string, type: string) {
 
         const message = await mainOpenAI(workspace, threadId, messages, type);
 
-        (await ioSocket).emit(`${type}:${threadId}`, 'assistant'); //Afrmando que o type pode ser apenas ou playground, ou thread
+        (await ioSocket).emit(`thread:${threadId}`, 'assistant'); //Afrmando que o type pode ser apenas ou playground, ou thread
         // Confirma o processamento da mensagem
         channel.ack(msg);
       }

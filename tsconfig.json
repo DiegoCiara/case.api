@@ -31,4 +31,3 @@
   "include": ["src", "__tests__", "src/app/.ts",],
   "exclude": ["node_modules"]
 }
-

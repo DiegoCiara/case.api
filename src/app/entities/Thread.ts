@@ -45,11 +45,8 @@ class Thread extends BaseEntity {
   @Column()
   name!: string;
 
-  @Column()
+  @Column({ default: true })
   active!: boolean;
-
-  @Column()
-  usage!: string;
 
   @CreateDateColumn()
   createdAt!: Date;

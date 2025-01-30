@@ -5,7 +5,7 @@ import OpenAI from 'openai';
 
 import { v4 as uuidv4 } from 'uuid';
 
-export async function formatMessage(openai: OpenAI, media: any, message: string, threadId: string, workspace: Workspace, type: string) {
+export async function formatMessage(openai: OpenAI, media: any, message: string, threadId: string, workspace: Workspace) {
   if (media) {
     // Verifica se media é um array, caso contrário, transforma em array
     const mediaArray = Array.isArray(media) ? media : [media];

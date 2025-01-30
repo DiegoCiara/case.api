@@ -95,7 +95,7 @@ class AuthController {
         expiresIn: '5m',
       });
 
-      await User.update(user.id, { token_auth_secret: tempToken });
+      await User.update(user.id, { token_auth_secret: tempToken, has_configured_2fa: true });
 
       res.status(200).json({
         id: user.id,
@@ -226,7 +226,7 @@ class AuthController {
         return;
       }
 
-      const user = await User.findOne({ where: { email } });
+      const user = await User.findOne({ where: { email }, relations: ['accesses'] });
 
       if (!user) {
         res.status(404).json({
@@ -261,6 +261,7 @@ class AuthController {
             name: user.name,
             email: user.email,
             has_configured: user.has_configured_2fa,
+            workspaces_count: user.accesses.length
           },
           token: token,
         });

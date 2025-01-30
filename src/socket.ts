@@ -5,7 +5,7 @@ import http from 'http'
 import express from 'express';
 import cors from 'cors';
 import { Server} from 'socket.io';
-import { SocketEmitController } from '@controllers/SocketController';
+import { SocketEmitController } from '@controllers/SocketEmitController';
 
 const app = express();
 

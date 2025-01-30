@@ -1,6 +1,6 @@
-import path from 'path';
+// import path from 'path';
 import nodemailer from 'nodemailer';
-import hbs from 'nodemailer-express-handlebars';
+// import hbs from 'nodemailer-express-handlebars';
 import { host, port, user, pass } from '../config/mail.json';
 
 const transport = nodemailer.createTransport({
@@ -15,18 +15,18 @@ const transport = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false,
   }
-}); 
+});
 
-transport.use(
-  'compile',
-  hbs({
-    viewEngine: {
-      defaultLayout: undefined,
-      partialsDir: path.resolve('./src/resources/mail/'),
-    },
-    viewPath: path.resolve('./src/resources/mail/'), // resolve parte sempre da raiz absoluta do projeto.
-    extName: '.html',
-  })
-);
+// transport.use(
+//   'compile',
+//   hbs({
+//     viewEngine: {
+//       defaultLayout: undefined,
+//       partialsDir: path.resolve('./src/resources/mail/'),
+//     },
+//     viewPath: path.resolve('./src/resources/mail/'), // resolve parte sempre da raiz absoluta do projeto.
+//     extName: '.html',
+//   })
+// );
 
 export default transport;
