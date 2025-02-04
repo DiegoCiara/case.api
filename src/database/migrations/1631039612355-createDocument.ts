@@ -30,6 +30,12 @@ export class createDocument1631039612355 implements MigrationInterface {
             type: 'varchar',
           },
           {
+            name: 'orientation',
+            type: 'enum',
+            enum: ['portrait', 'landscape'],
+            default: `'portrait'`
+          },
+          {
             name: 'createdAt',
             type: 'timestamp',
             default: 'now()',

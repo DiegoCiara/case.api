@@ -97,7 +97,7 @@ class VectorController {
       let completed = 0;
       let failed = 0;
 
-      console.log(files);
+      // console.log(files);
 
       for (const file of files) {
         try {

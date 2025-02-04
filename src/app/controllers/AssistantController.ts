@@ -240,7 +240,7 @@ class AssistantController {
 
       const ai = response.choices[0].message.content;
 
-      console.log(response);
+      // console.log(response);
 
       res.status(200).json(ai);
     } catch (error) {

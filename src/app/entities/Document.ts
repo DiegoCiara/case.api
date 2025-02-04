@@ -29,6 +29,9 @@ class Document extends BaseEntity {
   @Column()
   content!: string;
 
+  @Column()
+  orientation!: string;
+
   @ManyToOne(() => Workspace, (user) => user.documents)
   @JoinColumn([{ name: 'workspace', referencedColumnName: 'id' }])
   workspace!: Workspace;
