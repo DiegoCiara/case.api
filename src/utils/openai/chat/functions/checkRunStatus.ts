@@ -29,6 +29,7 @@ export async function checkRun(openai: OpenAI, workspace: Workspace, threadId: s
         resolve(messages);
       } else if (runStatus.status === 'failed') {
         (await ioSocket).emit(`runError-thread:${threadId}`);
+        console.log(runStatus)
         resolve(null);
       } else if (runStatus.status === 'requires_action') {
         (await ioSocket).emit(`requireAction-thread:${threadId}`);
