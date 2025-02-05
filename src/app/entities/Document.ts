@@ -29,7 +29,7 @@ class Document extends BaseEntity {
   @Column()
   content!: string;
 
-  @Column()
+  @Column({ type: 'enum', default: 'portrait', enum: ['portrait', 'landscape']})
   orientation!: string;
 
   @ManyToOne(() => Workspace, (user) => user.documents)

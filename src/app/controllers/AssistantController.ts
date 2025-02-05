@@ -210,19 +210,19 @@ class AssistantController {
    */
   public async generate(req: Request, res: Response): Promise<void> {
     try {
-      const workspaceId = req.header('workspaceId');
+      // const workspaceId = req.header('workspaceId');
 
-      if (!workspaceId) {
-        res.status(400).json({ message: 'workspaceId é necessário' });
-        return;
-      }
+      // if (!workspaceId) {
+      //   res.status(400).json({ message: 'workspaceId é necessário' });
+      //   return;
+      // }
 
-      const workspace = await Workspace.findOne(workspaceId);
+      // const workspace = await Workspace.findOne(workspaceId);
 
-      if (!workspace) {
-        res.status(404).json({ message: 'Workspace não encontrado' });
-        return;
-      }
+      // if (!workspace) {
+      //   res.status(404).json({ message: 'Workspace não encontrado' });
+      //   return;
+      // }
 
       const { prompt } = req.body;
 

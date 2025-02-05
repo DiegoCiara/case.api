@@ -360,7 +360,7 @@ class UserController {
         return;
       }
 
-      await sendMail('newUser', 'contato@softspace.com.br', 'Bem vindo ao Case!', { name: user.name })
+      await sendMail('newUser', 'contato@softspace.com.br', 'Bem vindo ao Case!', { name: user.name });
 
       res.status(201).json({
         user: {
@@ -638,20 +638,35 @@ class UserController {
    */
   public async updatePassword(req: Request, res: Response): Promise<void> {
     try {
-      const id = req.params.id;
 
-      if (!id) {
-        res.status(400).json({ message: 'ID de usuário não informado' });
+      const { oldPassword, newPassword, password } = req.body;
+
+      const user = await Users.findOne(req.userId)
+
+      if (!user) {
+        res.status(401).json({ message: 'Usuário não encontrado' });
         return;
       }
 
-      const { oldPassword, newPassword } = req.body;
+      if (!(await bcrypt.compare(password, user.password_hash))) {
+        res.status(401).json({ message: 'Senha inválida.' });
+        return;
+      }
 
       if (!oldPassword || !newPassword) {
         res.status(400).json({ message: 'Valores inválidos para redefinir a senha' });
         return;
       }
 
+
+      if (oldPassword !== newPassword) {
+        res.status(400).json({ message: 'As senhas não coincídem' });
+        return;
+      }
+
+      const password_hash = await bcrypt.hash(newPassword, 10);
+
+      const updateUser = Users.update(user.id, { password_hash })
       // Aqui você deve adicionar a lógica para verificar a senha antiga e atualizar para a nova senha
 
       res.status(204).send({ message: 'Senha atualizada com sucesso' });
