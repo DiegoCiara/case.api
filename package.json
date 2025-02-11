@@ -37,7 +37,7 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.16",
     "nodemailer-express-handlebars": "^7.0.0",
-    "openai": "^4.80.0",
+    "openai": "^4.83.0",
     "pg": "^8.7.1",
     "probe-image-size": "^7.2.3",
     "qrcode": "^1.5.4",

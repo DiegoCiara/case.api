@@ -92,17 +92,17 @@ class WorkspaceController {
   }
   public async createWorkspace(req: Request, res: Response): Promise<void> {
     try {
-      const { workspaceName, name, instructions, temperature, priceId, paymentMethodId } = req.body;
+      const { workspaceName, priceId, paymentMethodId } = req.body;
 
       if (!workspaceName) {
         res.status(404).json({ message: 'Informe um nome para seu workspace.' });
         return;
       }
 
-      if (!name || !instructions || !temperature) {
-        res.status(404).json({ message: 'Valores inválidos para criação da assistente.' });
-        return;
-      }
+      // if (!name || !instructions || !temperature) {
+      //   res.status(404).json({ message: 'Valores inválidos para criação da assistente.' });
+      //   return;
+      // }
       const user = await User.findOne(req.userId);
 
       if (!user) {
@@ -120,9 +120,8 @@ class WorkspaceController {
       });
 
       const assistant = await openai.beta.assistants.create({
-        name,
-        instructions,
-        temperature,
+        name: user.customer_id,
+        temperature: 0.5,
         model: 'gpt-4o-mini',
         tools: [{ type: 'file_search' }],
         tool_resources: {

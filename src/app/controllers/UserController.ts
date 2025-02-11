@@ -375,6 +375,141 @@ class UserController {
       res.status(500).json({ message: 'Erro interno no registro, tente novamente.', error: error });
     }
   }
+  /**
+   * @swagger
+   * /user:
+   *   post:
+   *     summary: Cria um novo usuário
+   *     tags: [Usuários]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               name:
+   *                 type: string
+   *               email:
+   *                 type: string
+   *               password:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: Usuário criado com sucesso
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 user:
+   *                   type: object
+   *                   properties:
+   *                     id:
+   *                       type: string
+   *                     name:
+   *                       type: string
+   *                     email:
+   *                       type: string
+   *                 message:
+   *                   type: string
+   *       400:
+   *         description: Valores inválidos para o novo usuário
+   *       409:
+   *         description: Usuário já existe
+   *       500:
+   *         description: Erro interno ao criar o usuário
+   */
+  public async createInvite(req: Request, res: Response): Promise<void> {
+    try {
+      const { name, email, password }: UserInterface = req.body;
+
+      const workspaceId = req.header('workspaceId');
+
+      if (!workspaceId) {
+        res.status(400).json({ message: 'Por favor, informe o ID do seu workspace.' });
+        return;
+      }
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) {
+        res.status(404).json({ message: 'Workspace não encontrado.' });
+        return;
+      }
+
+      if (!email || !emailValidator(email) || !password) {
+        res.status(400).json({ message: 'Valores inválidos para o novo usuário.' });
+        return;
+      }
+
+      const findUser = await Users.findOne({ where: { email } });
+
+      if (findUser) {
+        res.status(409).json({
+          message: 'Já existe um usuário cadastrado com este e-mail.',
+        });
+        return;
+      }
+
+      const password_hash = await bcrypt.hash(password, 10);
+
+      const secret = speakeasy.generateSecret({
+        name: `Case AI: ${email}`,
+      });
+
+      const customer = await createCustomer({
+        name,
+        email,
+      });
+
+      if (!customer) {
+        res.status(400).json({
+          message: 'Não foi possível criar o usuário cliente, tente novamente',
+        });
+        return;
+      }
+
+      const jwtSecret = process.env.SECRET;
+      // Verificar o token temporário
+
+      const tempToken = jwt.sign({ email: email }, jwtSecret!, {
+        expiresIn: '5m',
+      });
+
+      const user = await Users.create({
+        name,
+        email,
+        customer_id: customer.id,
+        password_hash,
+        secret: secret.base32,
+        token_auth_secret: tempToken,
+      }).save();
+
+      if (!user) {
+        res.status(500).json({
+          message: 'Erro interno ao criar o usuário, tente novamente.',
+        });
+        return;
+      }
+
+      
+
+      await sendMail('newUser', 'contato@softspace.com.br', 'Bem vindo ao Case!', { name: user.name });
+
+      res.status(201).json({
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+        message: 'Usuário criado com sucesso',
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Erro interno no registro, tente novamente.', error: error });
+    }
+  }
 
   /**
    * @swagger

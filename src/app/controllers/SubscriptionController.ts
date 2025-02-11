@@ -95,7 +95,12 @@ class SubscriptionController {
         res.status(404).json({ message: 'Usuário não encontrado' });
         return;
       }
+
+      console.log(user)
+
       const customer = await listPaymentMethods(user.customer_id);
+
+      console.log(customer)
 
       const { data }: any = customer;
 
