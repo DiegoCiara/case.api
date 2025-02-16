@@ -79,9 +79,6 @@ const mocks = async (): Promise<void> => {
       vectorId: openaiVector.id,
       assistantPicture: 'https://case-endurance.vercel.app/spider-logo.png',
       favicon: 'https://www.endurancetecnologia.com.br/favicon.svg',
-      logo: 'https://endurancetecnologia.com.br/logo-dark.svg',
-      logoDark: 'https://endurancetecnologia.com.br/logo.svg',
-      colorTheme: generateColor(),
     }).save();
     console.log(`Assistente ${workspace.name} criado`);
 

@@ -14,7 +14,6 @@ import Whisper from './Whisper';
 import Vision from './Vision';
 import Access from './Access';
 import Integration from './Integration';
-import Document from './Document';
 
 @Entity({ name: 'workspaces' })
 class Workspace extends BaseEntity {
@@ -39,9 +38,6 @@ class Workspace extends BaseEntity {
   @Column({ nullable: true })
   favicon!: string;
 
-  @Column()
-  colorTheme!: string;
-
   @OneToMany(() => Token, (token) => token.workspace)
   tokens!: Token[];
 
@@ -50,9 +46,6 @@ class Workspace extends BaseEntity {
 
   @OneToMany(() => Thread, (thread) => thread.workspace)
   threads!: Thread[];
-
-  @OneToMany(() => Document, (thread) => thread.workspace)
-  documents!: Document[];
 
   @OneToMany(() => Whisper, (notification) => notification.workspace)
   whispers!: Whisper[];

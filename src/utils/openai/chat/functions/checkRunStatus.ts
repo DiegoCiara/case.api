@@ -4,7 +4,6 @@ import OpenAI from 'openai';
 import { ioSocket } from '@src/socket';
 import { runIntegration } from './runIntegration';
 import { getTime } from './actions/getTime';
-import { createDocument } from './actions/createDocument';
 
 // Função para verificar se existe um run ativo
 export async function getActiveRun(openai: OpenAI, threadId: string) {
@@ -62,23 +61,6 @@ export async function checkRun(openai: OpenAI, workspace: Workspace, threadId: s
                 const args = tool?.function?.arguments;
                 try {
                   const action = await getTime();
-                  const message = action?.message;
-                  return {
-                    tool_call_id: tool.id,
-                    output: message,
-                  };
-                } catch (error) {
-                  console.error('errorSS', error);
-                  return {
-                    tool_call_id: tool.id,
-                    output: 'Ocorreu um erro ao tentar executar a função, tente novamente',
-                  };
-                }
-              }
-              if (tool.function.name === 'createDocument') {
-                const args = tool?.function?.arguments;
-                try {
-                  const action = await createDocument(workspace, threadId, args);
                   const message = action?.message;
                   return {
                     tool_call_id: tool.id,

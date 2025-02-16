@@ -7,6 +7,8 @@ import { retrieveAssistant } from '@utils/openai/management/assistants/retrieveA
 import { generateColor } from '@utils/functions/generateColor';
 import { createSubscription } from '@utils/stripe/subscriptions/createSubscription';
 import Access from '@entities/Access';
+import { findPlan } from '@utils/stripe/products/findPlan';
+import { findSubscription } from '@utils/stripe/products/findSubscription';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
@@ -43,13 +45,13 @@ class WorkspaceController {
       const workspaces = user.accesses.flatMap((e) => e.workspace);
 
       const assistants: any = await Promise.all(
-        workspaces.map(async (workspace: any) => {
-          const assistant = await retrieveAssistant(openai, workspace.assistantId);
+        workspaces.map(async (workspace: Workspace) => {
+          const plan = await findSubscription(workspace.subscriptionId)
           return {
             id: workspace.id,
             name: workspace.name,
             favicon: workspace.favicon,
-            assistantName: assistant?.name,
+            assistantName: plan?.name,
             picture: workspace.assistantPicture,
           };
         })
@@ -134,7 +136,6 @@ class WorkspaceController {
         assistantId: assistant.id,
         vectorId: vector.id,
         subscriptionId: subscription.id,
-        colorTheme: generateColor(),
       }).save();
 
       const access = await Access.create({

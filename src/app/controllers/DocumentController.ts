@@ -1,6 +1,6 @@
 import Workspace from '@entities/Workspace';
 import { Request, Response } from 'express';
-import Document from '@entities/Document';
+import Document from '@entities/Thread';
 import { ioSocket } from '@src/socket';
 
 class VectorController {

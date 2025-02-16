@@ -33,8 +33,6 @@ class SubscriptionController {
   public async listPlans(req: Request, res: Response): Promise<void> {
     try {
       const data = await listPlans();
-
-      console.log(data);
       res.status(200).json(data);
     } catch (error) {
       res.status(404).json({ message: 'Cannot find workspaces, try again' });
@@ -77,7 +75,6 @@ class SubscriptionController {
           hosted_invoice_url: e.hosted_invoice_url,
         };
       });
-      console.log(invoices);
       res.status(200).json(invoices);
     } catch (error) {
       console.log(error);
@@ -96,11 +93,7 @@ class SubscriptionController {
         return;
       }
 
-      console.log(user)
-
       const customer = await listPaymentMethods(user.customer_id);
-
-      console.log(customer)
 
       const { data }: any = customer;
 
@@ -182,7 +175,7 @@ class SubscriptionController {
         return;
       }
       const intent = await createPaymentIntent(user.customer_id);
-      console.log(intent);
+      
       res.status(200).json(intent);
     } catch (error) {
       console.log(error);

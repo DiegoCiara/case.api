@@ -149,7 +149,7 @@ class ThreadController {
 
       const thread = await openai.beta.threads.create();
 
-      const messageOpenai: any = await formatMessage(openai, media, text, thread.id, workspace, 'thread');
+      const messageOpenai: any = await formatMessage(openai, media, text, thread.id, workspace);
 
       console.log();
 
@@ -219,7 +219,7 @@ class ThreadController {
         return;
       }
 
-      const messageOpenai: any = formatMessage(openai, media, text, thread.id, workspace, 'thread');
+      const messageOpenai: any = formatMessage(openai, media, text, thread.id, workspace);
 
       console.log(messageOpenai);
 
