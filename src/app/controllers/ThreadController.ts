@@ -64,7 +64,7 @@ class ThreadController {
       }
 
       const threads = await Thread.find({ where: { workspace, user } });
-      console.log(threads);
+
       res.status(200).json(threads);
     } catch (error) {
       res.status(404).json({ message: 'Cannot find workspaces, try again' });
@@ -93,7 +93,7 @@ class ThreadController {
 
 
       const messages = transformMessages(data);
-
+      console.log(messages.map((e: any) => e.image_files.map((i: any) => i.image_file)))
       res.status(200).json(messages);
     } catch (error) {
       console.log(error);

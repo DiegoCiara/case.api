@@ -75,6 +75,7 @@ class VectorController {
       const response = await openai.files.content(id);
 
       console.log(response)
+      
       if (!response) {
         res.status(404).json({ message: 'Arquivo não encontrado' });
         return;
