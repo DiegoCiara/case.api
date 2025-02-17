@@ -82,10 +82,19 @@ class VectorController {
 
       const image_data = await response.arrayBuffer();
 
-      res.setHeader('Content-Type', 'application/octet-stream');
-      res.setHeader('Content-Disposition', `attachment; filename="arquivo"`);
+      const image_data_buffer = Buffer.from(image_data);
 
-      res.status(200).send(Buffer.from(image_data));
+      if (!image_data_buffer) {
+        res.status(404).json({ message: 'Arquivo não encontrado' });
+        return;
+      }
+
+
+    // Envia o arquivo diretamente como stream binário
+    res.setHeader('Content-Disposition', `attachment; filename="${id}.bin"`);
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.send(image_data_buffer);
+
     } catch (error) {
       console.log(error)
       res.status(404).json({ message: 'Cannot find groups, try again' });
