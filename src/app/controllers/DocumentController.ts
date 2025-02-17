@@ -70,6 +70,8 @@ class VectorController {
         return;
       }
 
+      console.log(id)
+
       const response = await openai.files.content(id);
 
       console.log(response)
@@ -77,23 +79,13 @@ class VectorController {
         res.status(404).json({ message: 'Arquivo não encontrado' });
         return;
       }
-      // Extract the binary data from the Response object
+
       const image_data = await response.arrayBuffer();
 
-      // Convert the binary data to a Buffer
-      const image_data_buffer = Buffer.from(image_data);
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="arquivo"`);
 
-      // Save the image to a specific location
-      if (!image_data_buffer) {
-        res.status(404).json({ message: 'Arquivo não encontrado' });
-        return;
-      }
-
-      console.log(image_data_buffer)
-
-      fs.writeFileSync("./my-image.png", image_data_buffer);
-
-      res.status(200).json(image_data_buffer);
+      res.status(200).send(Buffer.from(image_data));
     } catch (error) {
       console.log(error)
       res.status(404).json({ message: 'Cannot find groups, try again' });
