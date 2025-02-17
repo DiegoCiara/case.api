@@ -30,6 +30,11 @@ export class createThread1631039612332 implements MigrationInterface {
             type: 'varchar',
           },
           {
+            name: 'status',
+            type: 'varchar',
+            default: `'queued'`
+          },
+          {
             name: 'active',
             type: 'boolean',
             default: true,

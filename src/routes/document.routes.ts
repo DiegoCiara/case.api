@@ -6,6 +6,7 @@ const routes = Router();
 
 routes.get('/', ensureAuthenticated, DocumentController.findAll);
 routes.get('/:id', ensureAuthenticated, DocumentController.findById);
+routes.get('/file/:id', ensureAuthenticated, DocumentController.getFile);
 routes.post('/batch/', ensureAuthenticated, DocumentController.deleteBatchFiles);
 routes.delete('/:id', ensureAuthenticated, DocumentController.deleteFile);
 

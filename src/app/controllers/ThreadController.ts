@@ -91,6 +91,7 @@ class ThreadController {
 
       const { data }: any = await listMessages(openai, threadId);
 
+
       const messages = transformMessages(data);
 
       res.status(200).json(messages);

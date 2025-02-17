@@ -16,22 +16,29 @@ export async function getActiveRun(openai: OpenAI, threadId: string) {
 }
 
 export async function checkRun(openai: OpenAI, workspace: Workspace, threadId: string, runId: string, type: string): Promise<any> {
+  const thread = await Thread.findOne({ where: { threadId } });
+  if(!thread) return;
   return await new Promise((resolve, reject) => {
     let timeoutId: any;
 
     const verify = async (): Promise<void> => {
       const runStatus = await openai.beta.threads.runs.retrieve(threadId, runId);
+
+      (await ioSocket).emit(`running:${workspace.id}`);
       console.log('---------------------------------------------------------------------');
       if (runStatus.status === 'completed') {
         clearTimeout(timeoutId); // Limpa o timeout se o status for 'completed'
+        await Thread.update(thread.id, { status: runStatus.status });
         const messages = await openai.beta.threads.messages.list(threadId);
         resolve(messages);
       } else if (runStatus.status === 'failed') {
         (await ioSocket).emit(`runError-thread:${threadId}`);
-        console.log(runStatus)
+        await Thread.update(thread.id, { status: runStatus.status });
+        console.log(runStatus);
         resolve(null);
       } else if (runStatus.status === 'requires_action') {
         (await ioSocket).emit(`requireAction-thread:${threadId}`);
+        await Thread.update(thread.id, { status: runStatus.status });
         const toolCalls = runStatus.required_action?.submit_tool_outputs?.tool_calls || [];
         try {
           const integrations = workspace.integrations.map((e) => {
@@ -91,11 +98,13 @@ export async function checkRun(openai: OpenAI, workspace: Workspace, threadId: s
             resolve(null);
           }
         } catch (error) {
+
           console.error(error);
 
           resolve(null);
         }
       } else {
+        await Thread.update(thread.id, { status: runStatus.status });
         console.log('Aguardando resposta da OpenAI... Status ==>', runStatus?.status);
         (await ioSocket).emit(`processing-thread:${threadId}`);
         setTimeout(verify, 3000);
@@ -110,5 +119,3 @@ export async function checkRun(openai: OpenAI, workspace: Workspace, threadId: s
     verify();
   });
 }
-
-

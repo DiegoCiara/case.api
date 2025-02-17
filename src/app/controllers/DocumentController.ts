@@ -2,7 +2,10 @@ import Workspace from '@entities/Workspace';
 import { Request, Response } from 'express';
 import Document from '@entities/Thread';
 import { ioSocket } from '@src/socket';
+import fs from 'fs'
+import OpenAI from 'openai';
 
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 class VectorController {
   public async findAll(req: Request, res: Response): Promise<void> {
     try {
@@ -46,6 +49,53 @@ class VectorController {
 
       res.status(200).json(document);
     } catch (error) {
+      res.status(404).json({ message: 'Cannot find groups, try again' });
+    }
+  }
+  public async getFile(req: Request, res: Response): Promise<void> {
+    try {
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) {
+        res.status(404).json({ message: 'Workspace não encontrado' });
+        return;
+      }
+
+      const id = req.params.id;
+
+      if (!id) {
+        res.status(400).json({ message: 'ID não encontrado' });
+        return;
+      }
+
+      const response = await openai.files.content(id);
+
+      console.log(response)
+      if (!response) {
+        res.status(404).json({ message: 'Arquivo não encontrado' });
+        return;
+      }
+      // Extract the binary data from the Response object
+      const image_data = await response.arrayBuffer();
+
+      // Convert the binary data to a Buffer
+      const image_data_buffer = Buffer.from(image_data);
+
+      // Save the image to a specific location
+      if (!image_data_buffer) {
+        res.status(404).json({ message: 'Arquivo não encontrado' });
+        return;
+      }
+
+      console.log(image_data_buffer)
+
+      fs.writeFileSync("./my-image.png", image_data_buffer);
+
+      res.status(200).json(image_data_buffer);
+    } catch (error) {
+      console.log(error)
       res.status(404).json({ message: 'Cannot find groups, try again' });
     }
   }

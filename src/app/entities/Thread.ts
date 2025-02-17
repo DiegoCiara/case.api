@@ -25,6 +25,15 @@ class Thread extends BaseEntity {
   @Column()
   threadId!: string;
 
+  @Column()
+  name!: string;
+
+  @Column({ default: 'queued' })
+  status!: string;
+
+  @Column({ default: true })
+  active!: boolean;
+
   @ManyToOne(() => Workspace, (user) => user.threads)
   @JoinColumn([{ name: 'workspace', referencedColumnName: 'id' }])
   workspace!: Workspace;
@@ -41,13 +50,6 @@ class Thread extends BaseEntity {
 
   @OneToMany(() => Vision, (token) => token.thread)
   visions!: Vision[];
-
-  @Column()
-  name!: string;
-
-  @Column({ default: true })
-  active!: boolean;
-
   @CreateDateColumn()
   createdAt!: Date;
 
