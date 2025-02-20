@@ -9,6 +9,7 @@ import { processQueue } from '@utils/rabbitMq/proccess';
 import Thread from '@entities/Thread';
 import { retrieveFile } from '@utils/openai/management/threads/fileRetrivie';
 import { ioSocket } from '@src/socket';
+import { generateThreadName } from '@utils/openai/management/completions/generateThreadName';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
@@ -32,7 +33,7 @@ class ThreadController {
         return;
       }
 
-      const threads = await Thread.find({ where: { workspace, user } });
+      const threads = await Thread.find({ where: { workspace, user }, order: { updatedAt: 'ASC' } });
       console.log(threads);
       res.status(200).json(threads?.reverse());
     } catch (error) {
@@ -70,7 +71,6 @@ class ThreadController {
       res.status(404).json({ message: 'Cannot find workspaces, try again' });
     }
   }
-
   public async listThreadMessages(req: Request, res: Response): Promise<void> {
     try {
       const workspaceId = req.header('workspaceId');
@@ -89,12 +89,28 @@ class ThreadController {
         return;
       }
 
+      const thread = await Thread.findOne({ where: { threadId, workspace } });
+
+      if (!thread) {
+        res.status(404).json({ message: 'Thread não encontrada' });
+        return;
+      }
+
+      // Verifica se a thread foi criada há mais de 50 minutos
+      const updatedAt = new Date(thread.updatedAt);
+      const now = new Date();
+      const diffInMinutes = (now.getTime() - updatedAt.getTime()) / (1000 * 60);
+      console.log(diffInMinutes);
+      if (diffInMinutes > 50) {
+        // Atualiza a coluna `active` para false
+        thread.active = false;
+        await thread.save();
+      }
       const { data }: any = await listMessages(openai, threadId);
 
-
       const messages = transformMessages(data);
-      console.log(messages.map((e: any) => e.image_files.map((i: any) => i.image_file)))
-      res.status(200).json(messages);
+
+      res.status(200).json({ messages: messages, status: thread.active });
     } catch (error) {
       console.log(error);
       res.status(404).json({ message: 'Cannot find workspaces, try again' });
@@ -154,11 +170,11 @@ class ThreadController {
 
       console.log();
 
-      const name = messageOpenai.find((e: any) => e.type === 'text')?.text || 'Imagem';
+      const threadName: string = await generateThreadName(openai, messageOpenai);
 
       const threadCreated = await Thread.create({
         threadId: thread.id,
-        name,
+        name: threadName,
         workspace,
         user,
       }).save();
@@ -216,7 +232,18 @@ class ThreadController {
       const thread = await openai.beta.threads.retrieve(threadId);
 
       if (!thread.id) {
-        res.status(400).json({ message: 'Não foi possível verificar a thread, tente novamente.' });
+        res.status(404).json({ message: 'Não foi possível verificar a thread, tente novamente.' });
+        return;
+      }
+      const threadLocal = await Thread.findOne({ where: { threadId, workspace }})
+
+      if (!threadLocal) {
+        res.status(404).json({ message: 'Não foi possível verificar a thread, tente novamente.' });
+        return;
+      }
+
+      if (!threadLocal.active) {
+        res.status(400).json({ message: 'Esta thread não está mais ativa' });
         return;
       }
 
@@ -248,57 +275,57 @@ class ThreadController {
       res.status(404).json({ message: 'Cannot find workspaces, try again' });
     }
   }
-  public async deleteThread(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
+  // public async deleteThread(req: Request, res: Response): Promise<void> {
+  //   try {
+  //     const { id } = req.params;
 
-      if (!id) {
-        res.status(404).json({ message: 'Forneça um id de uma thread' });
-        return;
-      }
-      const workspaceId = req.header('workspaceId');
+  //     if (!id) {
+  //       res.status(404).json({ message: 'Forneça um id de uma thread' });
+  //       return;
+  //     }
+  //     const workspaceId = req.header('workspaceId');
 
-      const workspace = await Workspace.findOne(workspaceId);
+  //     const workspace = await Workspace.findOne(workspaceId);
 
-      if (!workspace) {
-        res.status(404).json({ message: 'Workspace não encontrado' });
-        return;
-      }
+  //     if (!workspace) {
+  //       res.status(404).json({ message: 'Workspace não encontrado' });
+  //       return;
+  //     }
 
-      const user = await User.findOne(req.userId);
+  //     const user = await User.findOne(req.userId);
 
-      if (!user) {
-        res.status(404).json({ message: 'user não encontrado' });
-        return;
-      }
+  //     if (!user) {
+  //       res.status(404).json({ message: 'user não encontrado' });
+  //       return;
+  //     }
 
-      console.log(id);
-      const thread = await Thread.findOne(id, { where: { workspace } });
+  //     console.log(id);
+  //     const thread = await Thread.findOne(id, { where: { workspace } });
 
-      if (!thread) {
-        res.status(400).json({ message: 'Não foi possível encontrar a thread, tente novamente.' });
-        return;
-      }
+  //     if (!thread) {
+  //       res.status(400).json({ message: 'Não foi possível encontrar a thread, tente novamente.' });
+  //       return;
+  //     }
 
-      const openaiThread = await openai.beta.threads.retrieve(thread.threadId);
+  //     const openaiThread = await openai.beta.threads.retrieve(thread.threadId);
 
-      if (!openaiThread) {
-        res.status(400).json({ message: 'Não foi possível verificar a thread, tente novamente.' });
-        return;
-      }
+  //     if (!openaiThread) {
+  //       res.status(400).json({ message: 'Não foi possível verificar a thread, tente novamente.' });
+  //       return;
+  //     }
 
-      const deletedThread = await openai.beta.threads.del(openaiThread.id);
+  //     const deletedThread = await openai.beta.threads.del(openaiThread.id);
 
-      if (deletedThread.id) {
-        await Thread.softRemove(thread);
-      }
+  //     if (deletedThread.id) {
+  //       await Thread.softRemove(thread);
+  //     }
 
-      res.status(200).json(thread.id);
-    } catch (error) {
-      console.log(error);
-      res.status(404).json({ message: 'Cannot find workspaces, try again' });
-    }
-  }
+  //     res.status(200).json(thread.id);
+  //   } catch (error) {
+  //     console.log(error);
+  //     res.status(404).json({ message: 'Cannot find workspaces, try again' });
+  //   }
+  // }
   public async updateThread(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;

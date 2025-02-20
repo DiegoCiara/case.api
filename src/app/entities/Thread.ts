@@ -31,7 +31,7 @@ class Thread extends BaseEntity {
   @Column({ default: 'queued' })
   status!: string;
 
-  @Column({ default: true })
+  @Column({ default: true }) 
   active!: boolean;
 
   @ManyToOne(() => Workspace, (user) => user.threads)

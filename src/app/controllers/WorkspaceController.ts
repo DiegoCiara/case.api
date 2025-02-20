@@ -46,7 +46,7 @@ class WorkspaceController {
 
       const assistants: any = await Promise.all(
         workspaces.map(async (workspace: Workspace) => {
-          const plan = await findSubscription(workspace.subscriptionId)
+          const plan = await findSubscription(workspace.subscriptionId);
           return {
             id: workspace.id,
             name: workspace.name,
@@ -124,8 +124,8 @@ class WorkspaceController {
       const assistant = await openai.beta.assistants.create({
         name: user.customer_id,
         temperature: 0.5,
-        model: 'gpt-4o-mini',
-        tools: [{ type: 'file_search' }],
+        model: 'o3-mini',
+        tools: [{ type: 'file_search' }, { type: 'code_interpreter' }],
         tool_resources: {
           file_search: { vector_store_ids: [vector.id] },
         },
