@@ -108,9 +108,11 @@ class ThreadController {
       }
       const { data }: any = await listMessages(openai, threadId);
 
+
+
       const messages = transformMessages(data);
 
-      res.status(200).json({ messages: messages, status: thread.active });
+      res.status(200).json({ messages: messages, status: thread.active, openai_messages: data });
     } catch (error) {
       console.log(error);
       res.status(404).json({ message: 'Cannot find workspaces, try again' });
@@ -146,7 +148,7 @@ class ThreadController {
 
   public async createThread(req: Request, res: Response): Promise<void> {
     try {
-      const { text, media } = req.body;
+      const { text, files } = req.body;
 
       const workspaceId = req.header('workspaceId');
 
@@ -166,7 +168,7 @@ class ThreadController {
 
       const thread = await openai.beta.threads.create();
 
-      const messageOpenai: any = await formatMessage(openai, media, text, thread.id, workspace);
+      const messageOpenai: any = await formatMessage(openai, files, text);
 
       console.log();
 
@@ -184,15 +186,11 @@ class ThreadController {
         return;
       }
 
-      await openai.beta.threads.messages.create(thread.id, {
-        role: 'user',
-        content: messageOpenai, //Array de mensagens comoo o openaiMessage
-      });
+      await openai.beta.threads.messages.create(thread.id, messageOpenai);
 
       const data = JSON.stringify({
         workspaceId: workspace.id,
         threadId: thread.id,
-        messages: messageOpenai,
       });
 
       const queue = `thread:${workspace.id}`;
@@ -211,7 +209,7 @@ class ThreadController {
   public async sendMessage(req: Request, res: Response): Promise<void> {
     try {
       const { threadId } = req.params;
-      const { text, media } = req.body;
+      const { text, files } = req.body;
 
       const workspaceId = req.header('workspaceId');
 
@@ -247,7 +245,7 @@ class ThreadController {
         return;
       }
 
-      const messageOpenai: any = formatMessage(openai, media, text, thread.id, workspace);
+      const messageOpenai: any = formatMessage(openai, files, text);
 
       console.log(messageOpenai);
 

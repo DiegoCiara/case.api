@@ -5,6 +5,9 @@ import OpenAI from "openai";
 
 export async function generateThreadName(openai: OpenAI, content: any): Promise<string>{
   try {
+    const messages = Array.isArray(content) ? content : [];
+
+    console.log(content)
 
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -12,7 +15,7 @@ export async function generateThreadName(openai: OpenAI, content: any): Promise<
       temperature: 0,
       messages: [
         { role: 'system', content: `Dê um nome para a conversa que inicie com a mensagem abaixo, sua resposta não poderá conter nenhum outro assunto ou frase que não seja o nome para a conversa` },
-        { role: 'user', content }
+        ...messages
       ],
     });
 

@@ -2,7 +2,7 @@ import Workspace from '@entities/Workspace';
 import { Request, Response } from 'express';
 import Document from '@entities/Thread';
 import { ioSocket } from '@src/socket';
-import fs from 'fs'
+import fs from 'fs';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -70,12 +70,12 @@ class VectorController {
         return;
       }
 
-      console.log(id)
+      console.log(id);
 
       const response = await openai.files.content(id);
 
-      console.log(response)
-      
+      console.log('response', response);
+
       if (!response) {
         res.status(404).json({ message: 'Arquivo não encontrado' });
         return;
@@ -90,14 +90,47 @@ class VectorController {
         return;
       }
 
-
-    // Envia o arquivo diretamente como stream binário
-    res.setHeader('Content-Disposition', `attachment; filename="${id}.bin"`);
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.send(image_data_buffer);
-
+      // Envia o arquivo diretamente como stream binário
+      res.setHeader('Content-Disposition', `attachment; filename="${id}.bin"`);
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.send(image_data_buffer);
     } catch (error) {
-      console.log(error)
+      console.log(error);
+      res.status(404).json({ message: 'Cannot find groups, try again' });
+    }
+  }
+  public async retrieveFile(req: Request, res: Response): Promise<void> {
+    try {
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) {
+        res.status(404).json({ message: 'Workspace não encontrado' });
+        return;
+      }
+
+      const id = req.params.id;
+
+      if (!id) {
+        res.status(400).json({ message: 'ID não encontrado' });
+        return;
+      }
+
+      console.log(id);
+
+      const response = await openai.files.retrieve(id);
+
+      console.log('response', response);
+
+      if (!response) {
+        res.status(404).json({ message: 'Arquivo não encontrado' });
+        return;
+      }
+
+      res.status(200).json(response);
+    } catch (error) {
+      console.log(error);
       res.status(404).json({ message: 'Cannot find groups, try again' });
     }
   }

@@ -13,7 +13,7 @@ const openai = new OpenAI({
 });
 
 // Buffer para armazenar mensagens por chatId, agora capaz de armazenar objetos de mensagem
-export async function mainOpenAI(workspace: Workspace, threadId: string, messages: any, type: string): Promise<any> {
+export async function mainOpenAI(workspace: Workspace, threadId: string, type: string): Promise<any> {
   try {
     if (!threadId) return;
 

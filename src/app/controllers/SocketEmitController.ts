@@ -34,7 +34,7 @@ export async function SocketEmitController(socketPlatform: Server) {
           return;
         }
 
-        const { text, media } = message;
+        const { text, files } = message;
 
         const workspace = await Workspace.findOne(workspaceId);
 
@@ -57,19 +57,15 @@ export async function SocketEmitController(socketPlatform: Server) {
           return;
         }
 
-        const messageOpenai: any = await formatMessage(openai, media, text, thread.id, workspace);
+        const messageOpenai: any = await formatMessage(openai, files, text,);
 
-        await openai.beta.threads.messages.create(thread.id, {
-          role: 'user',
-          content: messageOpenai, //Array de mensagens comoo o openaiMessage
-        });
+        await openai.beta.threads.messages.create(thread.id, messageOpenai);
 
         socket.emit(`thread:${thread.id}`); //Afrmando que o type pode ser apenas ou thread, ou thread
 
         const data = JSON.stringify({
           workspaceId: workspace.id,
           threadId: thread.id,
-          messages: messageOpenai,
         });
 
         const queue = `thread:${workspace.id}`;
