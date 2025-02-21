@@ -20,7 +20,6 @@ export async function formatMessage(openai: OpenAI, files: any, message: string)
     filesOpenai = await Promise.all(
       files.map(async (e: any) => {
         // Decodifica Base64 e salva o arquivo temporariamente
-        console.log('e.data', e.data)
         const base64SemPrefixo = e.data.replace(/^data:[^;]+;base64,/, '');        const buffer = Buffer.from(base64SemPrefixo, 'base64');
         const fileName = `${e.name}`;
         const filePath = path.join('src/temp', fileName); // Caminho temporário (pode ser modificado)
@@ -35,7 +34,7 @@ export async function formatMessage(openai: OpenAI, files: any, message: string)
         });
 
         // (Opcional) Remover o arquivo após o upload
-        // fs.unlinkSync(filePath);
+        fs.unlinkSync(filePath);
 
         return {
           file_id: file.id,

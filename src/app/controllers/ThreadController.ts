@@ -253,8 +253,6 @@ class ThreadController {
 
       const thread = await openai.beta.threads.create({ messages });
 
-      console.log('DSEEEEEEEEE', data);
-
       const threadCreated = await Thread.create({
         threadId: thread.id,
         name: `${threadFind.name} (Cópia)`,
