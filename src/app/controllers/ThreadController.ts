@@ -108,7 +108,7 @@ class ThreadController {
       }
       const { data }: any = await listMessages(openai, threadId);
 
-
+      console.log(data);
 
       const messages = transformMessages(data);
 
@@ -205,6 +205,85 @@ class ThreadController {
       res.status(404).json({ message: 'Cannot find workspaces, try again' });
     }
   }
+  public async continueThread(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) {
+        res.status(404).json({ message: 'Workspace não encontrado' });
+        return;
+      }
+
+      const user = await User.findOne(req.userId);
+
+      if (!user) {
+        res.status(404).json({ message: 'user não encontrado' });
+        return;
+      }
+
+      const threadFind = await Thread.findOne({ where: { threadId: id, workspace } });
+
+      if (!threadFind) {
+        res.status(404).json({ message: 'Thread não encontrado' });
+        return;
+      }
+
+      const { data }: any = await listMessages(openai, id);
+
+      const messages = data
+        .map((e: any) => {
+          console.log(e, e.content);
+
+          return {
+            role: e.role,
+            content: e.content.map((e: any) => {
+              return {
+                type: 'text',
+                text: e.text.value,
+              };
+            }),
+            attachments: e.attachments,
+          };
+        })
+        .reverse();
+
+      const thread = await openai.beta.threads.create({ messages });
+
+      console.log('DSEEEEEEEEE', data);
+
+      const threadCreated = await Thread.create({
+        threadId: thread.id,
+        name: `${threadFind.name} (Cópia)`,
+        workspace,
+        user,
+      }).save();
+
+      if (!threadCreated.id) {
+        res.status(400).json({ message: 'Não foi possível criar a thread, tente novamente.' });
+        return;
+      }
+
+      // const dataQueue = JSON.stringify({
+      //   workspaceId: workspace.id,
+      //   threadId: thread.id,
+      // });
+
+      // const queue = `thread:${workspace.id}`;
+
+      // await sendToQueue(queue, dataQueue);
+
+      // await processQueue(queue, 'thread');
+
+      res.status(200).json(thread.id);
+    } catch (error) {
+      console.log(error);
+      res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
 
   public async sendMessage(req: Request, res: Response): Promise<void> {
     try {
@@ -233,7 +312,7 @@ class ThreadController {
         res.status(404).json({ message: 'Não foi possível verificar a thread, tente novamente.' });
         return;
       }
-      const threadLocal = await Thread.findOne({ where: { threadId, workspace }})
+      const threadLocal = await Thread.findOne({ where: { threadId, workspace } });
 
       if (!threadLocal) {
         res.status(404).json({ message: 'Não foi possível verificar a thread, tente novamente.' });

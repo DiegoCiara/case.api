@@ -27,9 +27,6 @@ class Workspace extends BaseEntity {
   assistantId!: string;
 
   @Column()
-  vectorId!: string;
-
-  @Column()
   subscriptionId!: string;
 
   @Column({ nullable: true })

@@ -113,28 +113,21 @@ class WorkspaceController {
       }
       const subscription = await createSubscription(user.customer_id, priceId, paymentMethodId);
 
-      if (!subscription?.id) {
+      if (!subscription || !subscription.id) {
         res.status(400).json({ message: 'Não foi possível realizar a assinatura, altere o método de pagamento e tente novamente.' });
         return;
       }
-      const vector = await openai.beta.vectorStores.create({
-        name: 'Base de conhecimento',
-      });
 
       const assistant = await openai.beta.assistants.create({
-        name: user.customer_id,
+        name: subscription.id,
         temperature: 0.5,
-        model: 'o3-mini',
-        tools: [{ type: 'file_search' }, { type: 'code_interpreter' }],
-        tool_resources: {
-          file_search: { vector_store_ids: [vector.id] },
-        },
+        model: 'gpt-4o',
+        tools: [{ type: 'code_interpreter' }],
       });
 
       const workspace = await Workspace.create({
         name: workspaceName,
         assistantId: assistant.id,
-        vectorId: vector.id,
         subscriptionId: subscription.id,
       }).save();
 
