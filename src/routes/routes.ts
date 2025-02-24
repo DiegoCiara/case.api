@@ -5,7 +5,6 @@ import SubscriptionRoutes from './subscription.routes';
 import IntegrationRoutes from './integration.routes';
 import AssistantRoutes from './assistant.routes';
 import ThreadRoutes from './thread.routes';
-import VectorRoutes from './vector.routes';
 import UserRoutes from './user.routes';
 import PlaygroundRoutes from './thread.routes';
 import DocumentRoutes from './document.routes';
@@ -66,7 +65,6 @@ routes.use('/assistant/', AssistantRoutes);
 routes.use('/document/', DocumentRoutes);
 routes.use('/subscription/', SubscriptionRoutes);
 routes.use('/integration/', IntegrationRoutes);
-routes.use('/vector/', VectorRoutes);
 routes.use('/thread', ThreadRoutes);
 
 export default routes;

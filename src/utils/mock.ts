@@ -53,10 +53,6 @@ const mocks = async (): Promise<void> => {
 
     const tools: any = [{ type: 'file_search' }];
 
-    const openaiVector = await openai.beta.vectorStores.create({
-      name: 'Base de conhecimento',
-    });
-
     const assistant = await openai.beta.assistants.create({
       name: 'Edite',
       instructions: '',
@@ -64,9 +60,6 @@ const mocks = async (): Promise<void> => {
       temperature: 0.5,
       model: 'gpt-4o-mini',
       tools,
-      tool_resources: {
-        file_search: { vector_store_ids: [openaiVector.id] },
-      },
       top_p: 1,
       metadata: {},
       response_format: 'auto',
@@ -76,7 +69,6 @@ const mocks = async (): Promise<void> => {
       name: 'Endurance Tecnologia',
       subscriptionId: 'sub_1Qa3RJCEMWzJZjFdw1bxphVv',
       assistantId: assistant.id,
-      vectorId: openaiVector.id,
       assistantPicture: 'https://case-endurance.vercel.app/spider-logo.png',
       favicon: 'https://www.endurancetecnologia.com.br/favicon.svg',
     }).save();

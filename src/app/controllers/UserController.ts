@@ -360,7 +360,7 @@ class UserController {
         return;
       }
 
-      await sendMail('newUser', 'contato@softspace.com.br', 'Bem vindo ao Case!', { name: user.name });
+      // await sendMail('newUser', 'contato@softspace.com.br', 'Bem vindo ao Case!', { name: user.name });
 
       res.status(201).json({
         user: {
@@ -493,7 +493,7 @@ class UserController {
         return;
       }
 
-      
+
 
       await sendMail('newUser', 'contato@softspace.com.br', 'Bem vindo ao Case!', { name: user.name });
 

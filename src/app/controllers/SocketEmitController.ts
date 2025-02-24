@@ -34,7 +34,7 @@ export async function SocketEmitController(socketPlatform: Server) {
           return;
         }
 
-        const { text, files } = message;
+        const { text, files, images } = message;
 
         const workspace = await Workspace.findOne(workspaceId);
 
@@ -57,7 +57,7 @@ export async function SocketEmitController(socketPlatform: Server) {
           return;
         }
 
-        const messageOpenai: any = await formatMessage(openai, files, text,);
+        const messageOpenai: any = await formatMessage(openai, files, images, text, workspace, thread.id);
 
         await openai.beta.threads.messages.create(thread.id, messageOpenai);
 

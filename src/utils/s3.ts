@@ -12,7 +12,7 @@ AWS.config.update({
 const bucketName = process.env.AWS_BUCKET_NAME;
 const aws = new AWS.S3();
 
-export async function s3Image(base64: string, workspace: Workspace, id: string, threadId: string) {
+export async function s3Image(base64: string, workspace: Workspace, fileName: string, threadId: string) {
   try {
     // Verificar o tipo de imagem a partir do prefixo base64
     let extension = '';
@@ -45,7 +45,7 @@ export async function s3Image(base64: string, workspace: Workspace, id: string, 
     // Configurar parâmetros para o upload do S3
     const params = {
       Bucket: bucketName!,
-      Key: `workspace:${workspace.id}/threads/thread:${threadId}/${id}.${extension}`, // Nome do arquivo no bucket
+      Key: `workspace:${workspace.id}/threads/thread:${threadId}/${fileName}.${extension}`, // Nome do arquivo no bucket
       Body: buffer,
       ContentType: contentType, // Tipo de conteúdo dinâmico
     };

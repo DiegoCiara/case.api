@@ -148,7 +148,7 @@ class ThreadController {
 
   public async createThread(req: Request, res: Response): Promise<void> {
     try {
-      const { text, files } = req.body;
+      const { text, files, images } = req.body;
 
       const workspaceId = req.header('workspaceId');
 
@@ -168,7 +168,7 @@ class ThreadController {
 
       const thread = await openai.beta.threads.create();
 
-      const messageOpenai: any = await formatMessage(openai, files, text);
+      const messageOpenai: any = await formatMessage(openai, files, images, text, workspace, thread.id );
 
       console.log();
 
@@ -286,7 +286,7 @@ class ThreadController {
   public async sendMessage(req: Request, res: Response): Promise<void> {
     try {
       const { threadId } = req.params;
-      const { text, files } = req.body;
+      const { text, files, images } = req.body;
 
       const workspaceId = req.header('workspaceId');
 
@@ -322,7 +322,7 @@ class ThreadController {
         return;
       }
 
-      const messageOpenai: any = formatMessage(openai, files, text);
+      const messageOpenai: any = formatMessage(openai, files, images, text, workspace, threadId);
 
       console.log(messageOpenai);
 
@@ -330,6 +330,7 @@ class ThreadController {
         role: 'user',
         content: messageOpenai, //Array de mensagens comoo o openaiMessage
       });
+
       (await ioSocket).emit(`thread:${thread.id}`); //Afrmando que o type pode ser apenas ou thread, ou thread
 
       const data = JSON.stringify({

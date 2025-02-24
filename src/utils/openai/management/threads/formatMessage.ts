@@ -2,6 +2,8 @@ import fs from 'fs';
 import path, { matchesGlob } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import OpenAI from 'openai';
+import { s3, s3Image } from '@utils/s3';
+import Workspace from '@entities/Workspace';
 
 function getFileExtensionFromBase64(base64: string): string | null {
   const match = base64.match(/^data:(.+);base64,/);
@@ -12,15 +14,16 @@ function getFileExtensionFromBase64(base64: string): string | null {
   return null;
 }
 
-
-export async function formatMessage(openai: OpenAI, files: any, message: string) {
+export async function formatMessage(openai: OpenAI, files: any, images: any, message: string, workspace: Workspace, threadId: string) {
   let filesOpenai = [];
+  let imagesOpenai = [];
 
   if (files?.length > 0) {
     filesOpenai = await Promise.all(
       files.map(async (e: any) => {
         // Decodifica Base64 e salva o arquivo temporariamente
-        const base64SemPrefixo = e.data.replace(/^data:[^;]+;base64,/, '');        const buffer = Buffer.from(base64SemPrefixo, 'base64');
+        const base64SemPrefixo = e.data.replace(/^data:[^;]+;base64,/, '');
+        const buffer = Buffer.from(base64SemPrefixo, 'base64');
         const fileName = `${e.name}`;
         const filePath = path.join('src/temp', fileName); // Caminho temporário (pode ser modificado)
 
@@ -43,11 +46,27 @@ export async function formatMessage(openai: OpenAI, files: any, message: string)
       })
     );
   }
+  if (images?.length > 0) {
+    imagesOpenai = await Promise.all(
+      images.map(async (e: any) => {
+        // Decodifica Base64 e salva o arquivo temporariamente
+        const { Location } = await s3Image(e.data, workspace, `${e.name}-${uuidv4()}`, threadId);
+
+        return {
+          type: 'image_url',
+          image_url: { url: Location, detail: 'low' },
+        };
+      })
+    );
+  }
+
+  // Cria o array content com a mensagem de texto e as imagens
+  const content = [{ type: 'text', text: message }, ...imagesOpenai];
 
   console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', filesOpenai, message);
   return {
     role: 'user',
-    content: [{ type: 'text', text: message }],
+    content: content,
     attachments: filesOpenai,
   };
 }
