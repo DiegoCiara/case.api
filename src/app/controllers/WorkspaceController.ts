@@ -25,6 +25,7 @@ class WorkspaceController {
         res.status(404).json({ message: 'Workspace não encontrado' });
         return;
       }
+
       const subscription = await listSubscription(workspace.subscriptionId);
 
       res.status(200).json({ ...workspace, subscription });
@@ -47,6 +48,7 @@ class WorkspaceController {
       const assistants: any = await Promise.all(
         workspaces.map(async (workspace: Workspace) => {
           const plan = await findSubscription(workspace.subscriptionId);
+          // console.log(plan);
           return {
             id: workspace.id,
             name: workspace.name,

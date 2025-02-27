@@ -7,6 +7,8 @@ import OpenAI from 'openai';
 import { formatMessage } from '@utils/openai/management/threads/formatMessage';
 import { sendToQueue } from '@utils/rabbitMq/send';
 import { processQueue } from '@utils/rabbitMq/proccess';
+import { checkTokenLimitsThread } from '@utils/functions/checkTokenLimits';
+import Thread from '@entities/Thread';
 
 dotenv.config();
 
@@ -42,6 +44,21 @@ export async function SocketEmitController(socketPlatform: Server) {
           await returnChatError(threadId);
           return;
         }
+
+        const threadLocal = await Thread.findOne({ where: { threadId, workspaceId }});
+
+        if (!threadLocal || !threadLocal.id) {
+          await returnChatError(threadId);
+          return;
+        }
+
+        const hasSurpassed = await checkTokenLimitsThread(workspace.id, threadLocal.id, workspace.subscriptionId)
+
+        if (hasSurpassed) {
+          await returnChatError(threadId);
+          return;
+        }
+
 
         const user = await User.findOne(userId);
 

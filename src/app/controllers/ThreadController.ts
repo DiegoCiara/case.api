@@ -10,6 +10,7 @@ import Thread from '@entities/Thread';
 import { retrieveFile } from '@utils/openai/management/threads/fileRetrivie';
 import { ioSocket } from '@src/socket';
 import { generateThreadName } from '@utils/openai/management/completions/generateThreadName';
+import { checkTokenLimitsWorkspace } from '@utils/functions/checkTokenLimits';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
@@ -159,6 +160,13 @@ class ThreadController {
         return;
       }
 
+      const hasSurpassed = await checkTokenLimitsWorkspace(workspace.id, workspace.subscriptionId);
+
+      if (hasSurpassed) {
+        res.status(402).json({ message: 'Payment Required' });
+        return;
+      }
+
       const user = await User.findOne(req.userId);
 
       if (!user) {
@@ -168,7 +176,7 @@ class ThreadController {
 
       const thread = await openai.beta.threads.create();
 
-      const messageOpenai: any = await formatMessage(openai, files, images, text, workspace, thread.id );
+      const messageOpenai: any = await formatMessage(openai, files, images, text, workspace, thread.id);
 
       console.log();
 
@@ -215,6 +223,13 @@ class ThreadController {
 
       if (!workspace) {
         res.status(404).json({ message: 'Workspace não encontrado' });
+        return;
+      }
+
+      const hasSurpassed = await checkTokenLimitsWorkspace(workspace.id, workspace.subscriptionId);
+
+      if (hasSurpassed) {
+        res.status(402).json({ message: 'Payment Required' });
         return;
       }
 
@@ -297,10 +312,17 @@ class ThreadController {
         return;
       }
 
+      const hasSurpassed = await checkTokenLimitsWorkspace(workspace.id, workspace.subscriptionId);
+
+      if (hasSurpassed) {
+        res.status(402).json({ message: 'Payment Required' });
+        return;
+      }
+
       const user = await User.findOne(req.userId);
 
       if (!user) {
-        res.status(404).json({ message: 'user não encontrado' });
+        res.status(404).json({ message: 'Usuário não encontrado' });
         return;
       }
 
