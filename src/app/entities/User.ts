@@ -25,6 +25,8 @@ class User extends BaseEntity {
   @Column()
   customer_id!: string;
 
+  @Column({ type: 'enum', enum: ['BUSINESS', 'PERSONAL'], default: 'PERSONAL'}) //Tipo de conta, se o cliente é Business ou é indivual
+  account_type!: string;
 
   @Column({ nullable: true })
   picture!: string;

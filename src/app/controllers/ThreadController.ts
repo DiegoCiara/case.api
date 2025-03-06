@@ -346,8 +346,6 @@ class ThreadController {
 
       const messageOpenai: any = formatMessage(openai, files, images, text, workspace, threadId);
 
-      console.log(messageOpenai);
-
       await openai.beta.threads.messages.create(thread.id, {
         role: 'user',
         content: messageOpenai, //Array de mensagens comoo o openaiMessage

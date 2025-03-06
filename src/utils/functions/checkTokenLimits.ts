@@ -34,8 +34,11 @@ export async function checkTokenLimitsWorkspace(workspaceId: string, subscriptio
     const planPromptTokens = Number(plan.metadata.prompt_tokens);
     const planCompletionTokens = Number(plan.metadata.completion_tokens) || 0;
 
-    if (totalPromptTokens < planPromptTokens || totalCompletionTokens < planCompletionTokens) {
-      console.log('Limite de tokens excedido.');
+    console.log('Tokens analytics. =====================================>', totalPromptTokens, totalCompletionTokens, planPromptTokens, planCompletionTokens);
+
+
+    if (totalPromptTokens > planPromptTokens || totalCompletionTokens > planCompletionTokens) {
+      console.log('Limite de tokens excedido.', totalPromptTokens, totalCompletionTokens, planPromptTokens, planCompletionTokens);
       return false;
     }
 

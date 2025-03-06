@@ -30,6 +30,13 @@ export class createUser1631039612322 implements MigrationInterface {
             name: 'customer_id',
             type: 'varchar',
           },
+
+          {
+            name: 'account_type',
+            type: 'enum',
+            enum: ['BUSINESS', 'PERSONAL'],
+            default: `'PERSONAL'`,
+          },
           {
             name: 'password_hash',
             type: 'varchar',

@@ -142,7 +142,7 @@ class WorkspaceController {
       const assistant = await openai.beta.assistants.create({
         name: subscription.id,
         temperature: 0.5,
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         tools: [{ type: 'code_interpreter' }],
       });
 
