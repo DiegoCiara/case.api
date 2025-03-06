@@ -8,7 +8,7 @@ import { generateColor } from '@utils/functions/generateColor';
 import { createSubscription } from '@utils/stripe/subscriptions/createSubscription';
 import Access from '@entities/Access';
 import { findProductOfSubscription } from '@utils/stripe/products/findProductOfSubscription';
-
+import { checkTokenLimitsWorkspace } from '@utils/functions/checkTokenLimits';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
@@ -31,6 +31,25 @@ class WorkspaceController {
       res.status(200).json({ ...workspace, subscription });
     } catch (error) {
       res.status(404).json({ message: 'Cannot find workspaces, try again' });
+    }
+  }
+  public async planStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const workspaceId = req.header('workspaceId');
+
+      const workspace = await Workspace.findOne(workspaceId);
+
+      if (!workspace) {
+        res.status(404).json({ message: 'Workspace não encontrado' });
+        return;
+      }
+
+      const hasSurpassed = await checkTokenLimitsWorkspace(workspace.id, workspace.subscriptionId);
+
+      res.status(200).json({ status: hasSurpassed });
+    } catch (error) {
+      console.log(error)
+      res.status(404).json({ message: 'Something went wrong' });
     }
   }
   public async findWorkspaces(req: Request, res: Response): Promise<void> {

@@ -163,7 +163,7 @@ class ThreadController {
       const hasSurpassed = await checkTokenLimitsWorkspace(workspace.id, workspace.subscriptionId);
 
       if (!hasSurpassed) {
-        res.status(402).json({ message: 'Payment Required' });
+        res.status(402).json({ message: 'Você excedeu o limite de mensagens do plano' });
         return;
       }
 
@@ -229,7 +229,7 @@ class ThreadController {
       const hasSurpassed = await checkTokenLimitsWorkspace(workspace.id, workspace.subscriptionId);
 
       if (!hasSurpassed) {
-        res.status(402).json({ message: 'Payment Required' });
+        res.status(402).json({ message: 'Você excedeu o limite de mensagens do plano' });
         return;
       }
 
@@ -315,7 +315,7 @@ class ThreadController {
       const hasSurpassed = await checkTokenLimitsWorkspace(workspace.id, workspace.subscriptionId);
 
       if (!hasSurpassed) {
-        res.status(402).json({ message: 'Payment Required' });
+        res.status(402).json({ message: 'Você excedeu o limite de mensagens do plano' });
         return;
       }
 

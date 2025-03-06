@@ -4,6 +4,7 @@ import { ensureAuthenticated } from '@middlewares/ensureAuthenticated';
 
 const routes = Router();
 routes.get('/workspaces', ensureAuthenticated, WorkspaceController.findWorkspaces);
+routes.get('/plan-status', ensureAuthenticated, WorkspaceController.planStatus);
 routes.get('/', ensureAuthenticated, WorkspaceController.findWorkspace);
 routes.put('/', ensureAuthenticated, WorkspaceController.updateWorkspace);
 routes.post('/', ensureAuthenticated, WorkspaceController.createWorkspace);
