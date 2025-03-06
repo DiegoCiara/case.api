@@ -1,68 +1,47 @@
-import Token from "@entities/Token";
-import { findSubscription } from "@utils/stripe/products/findSubscription";
-
-export async function checkTokenLimitsThread(workspaceId: string, threadId: string, subscriptionId: string): Promise<boolean> {
-  try {
-
-    const plan = await findSubscription(subscriptionId);
-
-    console.log(plan);
-
-    // Realiza uma query agregada para somar os tokens
-    const result = await Token.createQueryBuilder("token")
-      .select("SUM(token.prompt_tokens)", "totalPromptTokens")
-      .addSelect("SUM(token.completion_tokens)", "totalCompletionTokens")
-      .where("token.workspaceId = :workspaceId", { workspaceId })
-      .andWhere("token.threadId = :threadId", { threadId })
-      .getRawOne();
-
-    // Extrai os valores da query
-    const totalPromptTokens = result?.totalPromptTokens || 0;
-    const totalCompletionTokens = result?.totalCompletionTokens || 0;
-
-    // Verifica os limites
-    // Verifica os limites
-    if (totalPromptTokens > plan.metadata.prompt_tokens || totalCompletionTokens > plan.metadata.completion_tokens) {
-      console.log('Limite de tokens excedido.');
-      return false; // Retorna false se os limites forem excedidos
-    }
-
-
-    return true; // Retorna true se os limites estiverem dentro do permitido
-  } catch (error) {
-    console.error('Erro ao verificar os limites de tokens:', error);
-    throw error; // Lança o erro para ser tratado no chamador
-  }
-}
+import Token from '@entities/Token';
+import { findProductOfSubscription } from '@utils/stripe/products/findProductOfSubscription';
 
 
 export async function checkTokenLimitsWorkspace(workspaceId: string, subscriptionId: string): Promise<boolean> {
   try {
-
-    const plan = await findSubscription(subscriptionId);
+    const plan = await findProductOfSubscription(subscriptionId);
 
     console.log(plan);
 
-    // Realiza uma query agregada para somar os tokens
-    const result = await Token.createQueryBuilder("token")
-      .select("SUM(token.prompt_tokens)", "totalPromptTokens")
-      .addSelect("SUM(token.completion_tokens)", "totalCompletionTokens")
-      .where("token.workspaceId = :workspaceId", { workspaceId })
+    // Obtém a data de início e fim do mês atual
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const endOfMonth = new Date();
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+    endOfMonth.setDate(1);
+    endOfMonth.setHours(0, 0, 0, 0);
+
+    const result = await Token.createQueryBuilder('token')
+      .select('SUM(token.prompt_tokens)', 'totalPromptTokens')
+      .addSelect('SUM(token.completion_tokens)', 'totalCompletionTokens')
+      .where('token.workspace = :workspaceId', { workspaceId })
+      .andWhere('token.createdAt BETWEEN :startOfMonth AND :endOfMonth', {
+        startOfMonth,
+        endOfMonth,
+      })
       .getRawOne();
 
-    // Extrai os valores da query
     const totalPromptTokens = result?.totalPromptTokens || 0;
     const totalCompletionTokens = result?.totalCompletionTokens || 0;
 
-    // Verifica os limites
-    if (totalPromptTokens > plan.metadata.prompt_tokens || totalCompletionTokens > plan.metadata.completion_tokens) {
+    const planPromptTokens = Number(plan.metadata.prompt_tokens);
+    const planCompletionTokens = Number(plan.metadata.completion_tokens) || 0;
+
+    if (totalPromptTokens < planPromptTokens || totalCompletionTokens < planCompletionTokens) {
       console.log('Limite de tokens excedido.');
-      return false; // Retorna false se os limites forem excedidos
+      return false;
     }
 
-    return true; // Retorna true se os limites estiverem dentro do permitido
+    return true;
   } catch (error) {
     console.error('Erro ao verificar os limites de tokens:', error);
-    throw error; // Lança o erro para ser tratado no chamador
+    throw error;
   }
 }

@@ -9,7 +9,7 @@ import { listSubscription } from '@utils/stripe/subscriptions/listSubscription';
 import { listPlans } from '@utils/stripe/products/listPlans';
 import User from '@entities/User';
 import { updateSubscription } from '@utils/stripe/subscriptions/updateSubscription';
-import { findPlan } from '@utils/stripe/products/findPlan';
+import { findProduct } from '@utils/stripe/products/findProduct';
 
 class SubscriptionController {
   public async findSubscription(req: Request, res: Response): Promise<void> {
@@ -42,7 +42,7 @@ class SubscriptionController {
   public async findPlan(req: Request, res: Response): Promise<void> {
     try {
       const { priceId } = req.params;
-      const data = await findPlan(priceId);
+      const data = await findProduct(priceId);
       res.status(200).json(data);
     } catch (error) {
       res.status(404).json({ message: 'Cannot find workspaces, try again' });
@@ -175,7 +175,7 @@ class SubscriptionController {
         return;
       }
       const intent = await createPaymentIntent(user.customer_id);
-      
+
       res.status(200).json(intent);
     } catch (error) {
       console.log(error);

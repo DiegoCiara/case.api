@@ -5,7 +5,7 @@ dotenv.config();
 
 const stripe = new Stripe(`${process.env.STRIPE_KEY}`);
 
-export const findPlan = async (id: string) => {
+export const findProduct = async (id: string) => {
   try {
     const product: any = await stripe.products.retrieve(id);
 

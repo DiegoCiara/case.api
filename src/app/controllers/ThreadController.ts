@@ -162,7 +162,7 @@ class ThreadController {
 
       const hasSurpassed = await checkTokenLimitsWorkspace(workspace.id, workspace.subscriptionId);
 
-      if (hasSurpassed) {
+      if (!hasSurpassed) {
         res.status(402).json({ message: 'Payment Required' });
         return;
       }
@@ -228,7 +228,7 @@ class ThreadController {
 
       const hasSurpassed = await checkTokenLimitsWorkspace(workspace.id, workspace.subscriptionId);
 
-      if (hasSurpassed) {
+      if (!hasSurpassed) {
         res.status(402).json({ message: 'Payment Required' });
         return;
       }
@@ -314,7 +314,7 @@ class ThreadController {
 
       const hasSurpassed = await checkTokenLimitsWorkspace(workspace.id, workspace.subscriptionId);
 
-      if (hasSurpassed) {
+      if (!hasSurpassed) {
         res.status(402).json({ message: 'Payment Required' });
         return;
       }
